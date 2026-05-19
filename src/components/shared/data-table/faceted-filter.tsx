@@ -1,0 +1,159 @@
+import { Check, PlusCircle } from "lucide-react"
+import type { Column } from "@tanstack/react-table"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@/components/ui/command"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { Separator } from "@/components/ui/separator"
+import { cn } from "@/lib/utils"
+
+export type FacetedOption = {
+  value: string
+  label: string
+  icon?: React.ComponentType<{ className?: string }>
+  swatch?: string
+}
+
+type Props<TData, TValue> = {
+  column?: Column<TData, TValue>
+  title: string
+  options: readonly FacetedOption[]
+}
+
+/**
+ * Reusable faceted filter trigger + popover.
+ * Mirrors shadcn DataTableFacetedFilter:
+ *   - Dashed-bordered (+) trigger
+ *   - When values are selected: separator + value pills inside the trigger
+ *   - Command-driven search list with checkbox + label + count
+ *   - Footer "Clear filters" appears only when values are selected
+ */
+export function DataTableFacetedFilter<TData, TValue>({
+  column,
+  title,
+  options,
+}: Props<TData, TValue>) {
+  const facets = column?.getFacetedUniqueValues()
+  const selectedValues = new Set(column?.getFilterValue() as string[] | undefined)
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="h-9 border-dashed">
+          <PlusCircle className="size-3.5" />
+          {title}
+          {selectedValues.size > 0 && (
+            <>
+              <Separator orientation="vertical" className="mx-0.5 h-4" />
+              <Badge
+                variant="secondary"
+                className="rounded-sm px-1 font-normal lg:hidden"
+              >
+                {selectedValues.size}
+              </Badge>
+              <div className="hidden gap-1 lg:flex">
+                {selectedValues.size > 2 ? (
+                  <Badge
+                    variant="secondary"
+                    className="rounded-sm px-1 font-normal"
+                  >
+                    {selectedValues.size} selected
+                  </Badge>
+                ) : (
+                  options
+                    .filter((o) => selectedValues.has(o.value))
+                    .map((o) => (
+                      <Badge
+                        key={o.value}
+                        variant="secondary"
+                        className="rounded-sm px-1 font-normal"
+                      >
+                        {o.label}
+                      </Badge>
+                    ))
+                )}
+              </div>
+            </>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[220px] p-0" align="start">
+        <Command>
+          <CommandInput placeholder={title} />
+          <CommandList>
+            <CommandEmpty>No results found.</CommandEmpty>
+            <CommandGroup>
+              {options.map((option) => {
+                const isSelected = selectedValues.has(option.value)
+                return (
+                  <CommandItem
+                    key={option.value}
+                    onSelect={() => {
+                      if (isSelected) selectedValues.delete(option.value)
+                      else selectedValues.add(option.value)
+                      const filterValues = Array.from(selectedValues)
+                      column?.setFilterValue(
+                        filterValues.length ? filterValues : undefined
+                      )
+                    }}
+                  >
+                    <div
+                      className={cn(
+                        "flex size-4 shrink-0 items-center justify-center rounded-[3px] border border-muted-foreground/60",
+                        isSelected
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "opacity-70 [&_svg]:invisible"
+                      )}
+                    >
+                      <Check className="size-3" />
+                    </div>
+                    {option.swatch && (
+                      <span
+                        className="size-1.5 shrink-0 rounded-full"
+                        style={{ background: option.swatch }}
+                      />
+                    )}
+                    {option.icon && (
+                      <option.icon className="size-3.5 text-muted-foreground" />
+                    )}
+                    <span>{option.label}</span>
+                    {facets?.get(option.value) !== undefined && (
+                      <span className="ml-auto font-mono text-xs tabular-nums text-muted-foreground">
+                        {facets.get(option.value)}
+                      </span>
+                    )}
+                  </CommandItem>
+                )
+              })}
+            </CommandGroup>
+            {selectedValues.size > 0 && (
+              <>
+                <CommandSeparator />
+                <CommandGroup>
+                  <CommandItem
+                    onSelect={() => column?.setFilterValue(undefined)}
+                    className="justify-center text-center"
+                  >
+                    Clear filters
+                  </CommandItem>
+                </CommandGroup>
+              </>
+            )}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  )
+}

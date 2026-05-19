@@ -1,0 +1,16 @@
+<svg viewBox="-1 -1 26 37" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="SIRP">
+  <style>
+    .sirp-cube-fg { fill: #121218; }
+    @media (prefers-color-scheme: dark) {
+      .sirp-cube-fg { fill: #fafafa; }
+    }
+  </style>
+  <path class="sirp-cube-fg" d="M22.2947 16.5507C20.0886 14.3907 16.5114 14.3907 14.3081 16.5507L6.13115 24.5584C3.92503 26.7185 3.92503 30.223 6.13115 32.3808C8.33726 34.5409 11.9145 34.5409 14.1177 32.3808L22.2947 24.3731C24.5008 22.2131 24.5008 18.7107 22.2947 16.5507Z"/>
+  <path d="M17.8181 1.62099C15.612 -0.539029 12.0348 -0.539029 9.83158 1.62099L1.65459 9.62804C-0.551528 11.7888 -0.551528 15.2926 1.65459 17.4504C3.8607 19.6105 7.43791 19.6105 9.64115 17.4504L17.8181 9.44269C20.0243 7.28267 20.0243 3.77816 17.8181 1.62028V1.62099Z" fill="url(#g)"/>
+  <defs>
+    <linearGradient id="g" x1="9.736" y1="4.29642" x2="9.736" y2="14.9461" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#BB81FF"/>
+      <stop offset="1" stop-color="#8E2DFF"/>
+    </linearGradient>
+  </defs>
+</svg>

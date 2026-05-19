@@ -1,0 +1,181 @@
+/* Sara · Co-Analyst — workspace styles
+   Styles that need pseudo-elements / keyframes live here.
+   Visual atoms (sizes, fonts, colors) stay in className. */
+
+/* Avatar — primary-tinted with soft brand ring + glow */
+.sara-avatar {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--primary) 20%, var(--card)) 0%,
+    color-mix(in srgb, var(--primary) 8%, var(--card)) 100%
+  );
+  color: var(--primary);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--primary) 30%, transparent),
+    0 0 12px -2px color-mix(in srgb, var(--primary) 25%, transparent);
+}
+.sara-avatar img {
+  filter: drop-shadow(
+    0 0 6px color-mix(in srgb, var(--primary) 40%, transparent)
+  );
+}
+
+/* Brand badge — used inline beside Sara's name */
+.sara-badge-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, transparent);
+}
+
+/* Active conversation row — left primary bar */
+.sara-conv-active {
+  position: relative;
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+.sara-conv-active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--primary);
+}
+
+/* Ambient brand glow — soft top edge of the thread */
+.sara-thread-glow {
+  background: radial-gradient(
+    ellipse 70% 40% at 50% -10%,
+    color-mix(in srgb, var(--primary) 7%, transparent),
+    transparent 60%
+  );
+}
+
+/* Pulse dot — small live indicator beside Sara's name */
+.sara-pulse-dot {
+  position: relative;
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--primary);
+}
+.sara-pulse-dot::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 9999px;
+  background: var(--primary);
+  opacity: 0.35;
+  animation: sara-pulse 2s ease-out infinite;
+}
+@keyframes sara-pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+/* Prose response — flows on the page, no bubble */
+.sara-prose {
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--foreground);
+}
+.sara-prose > * + * {
+  margin-top: 0.85rem;
+}
+.sara-prose strong {
+  font-weight: 600;
+}
+.sara-prose code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background: var(--muted);
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: var(--foreground);
+}
+.sara-prose ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.sara-prose ul li {
+  position: relative;
+  padding-left: 1.1rem;
+  margin: 0.25rem 0;
+}
+.sara-prose ul li::before {
+  content: "";
+  position: absolute;
+  left: 0.35rem;
+  top: 0.7rem;
+  width: 4px;
+  height: 4px;
+  border-radius: 9999px;
+  background: var(--muted-foreground);
+}
+.sara-prose h3 {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  margin-top: 1.4rem;
+  margin-bottom: 0.4rem;
+}
+
+/* Inline citation — superscript-feel, mono-tight */
+.sara-cite {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  vertical-align: super;
+  line-height: 1;
+  margin: 0 1px;
+  cursor: pointer;
+  transition: background 100ms;
+}
+.sara-cite:hover {
+  background: color-mix(in srgb, var(--primary) 14%, transparent);
+  color: var(--primary);
+}
+
+/* Tool-calls <details> — chevron rotates open */
+.sara-tool-details > summary {
+  list-style: none;
+}
+.sara-tool-details > summary::-webkit-details-marker {
+  display: none;
+}
+.sara-tool-details > summary .sara-chevron {
+  transition: transform 150ms;
+}
+.sara-tool-details[open] > summary .sara-chevron {
+  transform: rotate(90deg);
+}

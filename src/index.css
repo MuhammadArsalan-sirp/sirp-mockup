@@ -1,0 +1,528 @@
+/* ─────────────────────────────────────────────────────────────
+   SIRP — design tokens (light + dark)
+   Source of truth: Brand Guidelines (Colors.pdf)
+   ───────────────────────────────────────────────────────────── */
+
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Default app fonts */
+@import "@fontsource/dm-sans/400.css";
+@import "@fontsource/dm-sans/500.css";
+@import "@fontsource/dm-sans/600.css";
+@import "@fontsource/dm-sans/700.css";
+@import "@fontsource/dm-mono/400.css";
+@import "@fontsource/dm-mono/500.css";
+
+/* Optional fonts (loaded eagerly so the Preferences switcher is instant) */
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+@import "@fontsource/geist-sans/400.css";
+@import "@fontsource/geist-sans/500.css";
+@import "@fontsource/geist-sans/600.css";
+@import "@fontsource/geist-sans/700.css";
+@import "@fontsource/manrope/400.css";
+@import "@fontsource/manrope/500.css";
+@import "@fontsource/manrope/600.css";
+@import "@fontsource/manrope/700.css";
+@import "@fontsource-variable/figtree";
+@import "@fontsource-variable/plus-jakarta-sans";
+@import "@fontsource-variable/space-grotesk";
+@import "@fontsource-variable/outfit";
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+@import "@fontsource/ibm-plex-sans/700.css";
+@import "@fontsource-variable/jetbrains-mono";
+
+/* shadcn dark-mode variant — class strategy */
+@custom-variant dark (&:is(.dark *));
+
+/* ─── Light theme ─────────────────────────────────────────── */
+:root {
+  --radius: 0.625rem;
+
+  --background: #ffffff;
+  --foreground: #121218;
+
+  --card: #ffffff;
+  --card-foreground: #121218;
+
+  --popover: #ffffff;
+  --popover-foreground: #121218;
+
+  --primary: #8e2dff;
+  --primary-foreground: #ffffff;
+
+  --secondary: #f5f5f5;
+  --secondary-foreground: #121218;
+
+  --muted: #f5f5f5;
+  --muted-foreground: #5a5a69;
+
+  --accent: #f0f0f0;
+  --accent-foreground: #121218;
+
+  --destructive: #f87171;
+  --destructive-foreground: #ffffff;
+
+  --border: #e5e5e5;
+  --input: #e5e5e5;
+  --ring: #8e2dff;
+
+  --chart-1: #8e2dff;
+  --chart-2: #7224cc;
+  --chart-3: #5604b6;
+  --chart-4: #a457ff;
+  --chart-5: #bb81ff;
+
+  --success: #34d399;
+  --warning: #fbbf24;
+  --attention: #fb923c;
+  --info: #60a5fa;
+
+  --success-tint: #d1fae5;
+  --warning-tint: #fef3c7;
+  --attention-tint: #ffedd5;
+  --info-tint: #dbeafe;
+  --destructive-tint: #fee2e2;
+
+  --scrollbar-thumb: rgba(0, 0, 0, 0.32);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.52);
+
+  /* Solid colour equivalent to "bg-muted/40 over bg-background" — same
+     darker tone the autonomy module's tables use for their headers.
+     Pinned cells (which need an opaque bg to mask scrolled content) and
+     non-pinned cells (which can be translucent) reference this single
+     value so the header strip stays one continuous tone. */
+  --table-header-bg: color-mix(in oklab, var(--muted) 40%, var(--background));
+
+  --sidebar: #fafafa;
+  --sidebar-foreground: #121218;
+  --sidebar-primary: #8e2dff;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f5f5f5;
+  --sidebar-accent-foreground: #121218;
+  --sidebar-border: #e5e5e5;
+  --sidebar-ring: #8e2dff;
+}
+
+/* ─── Dark theme — surface tokens copied 1:1 from shadcn admin reference;
+   brand colours (primary, destructive, charts, semantic) kept ─── */
+.dark {
+  --background: oklch(0.145 0 0);              /* page canvas */
+  --foreground: oklch(0.985 0 0);
+
+  --card: oklch(0.205 0 0);                    /* card surfaces — deep neutral gray */
+  --card-foreground: oklch(0.985 0 0);
+
+  --popover: oklch(0.205 0 0);                 /* popovers — same elevation as card */
+  --popover-foreground: oklch(0.985 0 0);
+
+  --primary: #8e2dff;                          /* brand SIRPurple */
+  --primary-foreground: #ffffff;
+
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+
+  --accent: oklch(0.269 0 0);                  /* hover surfaces */
+  --accent-foreground: oklch(0.985 0 0);
+
+  --destructive: #f87171;                      /* brand alert red */
+  --destructive-foreground: #ffffff;
+
+  --border: oklch(1 0 0 / 10%);                /* hairline tints (matches reference) */
+  --input: oklch(1 0 0 / 15%);
+  --ring: #8e2dff;                             /* focus rings stay brand */
+
+  --chart-1: #d2abff;
+  --chart-2: #b98aff;
+  --chart-3: #a457ff;
+  --chart-4: #8e2dff;
+  --chart-5: #7224cc;
+
+  --success: #34d399;
+  --warning: #fbbf24;
+  --attention: #fb923c;
+  --info: #60a5fa;
+
+  --success-tint: #0a261c;
+  --warning-tint: #2a200a;
+  --attention-tint: #2a180a;
+  --info-tint: #0a1a30;
+  --destructive-tint: #2a0f14;
+
+  --scrollbar-thumb: rgba(255, 255, 255, 0.30);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.5);
+
+  /* Sidebar — same surface as card (copied from shadcn admin) */
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: #8e2dff;                  /* active nav highlight = brand */
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: #8e2dff;
+}
+
+/* ─── Bridge tokens → Tailwind utility classes ─── */
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-attention: var(--attention);
+  --color-info: var(--info);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-sans:
+    "DM Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, monospace;
+}
+
+/* ─── Base layer ─── */
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html,
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.01em;
+  }
+  body {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+}
+
+/* ─── Scrollbar — slim, ghost-white in dark / soft-black in light ─── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 9999px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  min-height: 40px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Utility to fully hide scrollbars where they'd add visual noise (sidebar nav, etc.) */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ─── Sidebar density — overrides shadcn's default h-8 nav item height
+   when [data-density] is set on <html>. Targets `data-size="default"`
+   only so the lg-sized OrgSwitcher and NavUser footer stay constant. ─── */
+html[data-density="compact"] [data-slot="sidebar-menu-button"][data-size="default"] {
+  height: 1.75rem; /* 28px */
+}
+html[data-density="spacious"] [data-slot="sidebar-menu-button"][data-size="default"] {
+  height: 2.25rem; /* 36px */
+}
+html[data-density="compact"] [data-slot="sidebar-menu-sub-button"] {
+  height: 1.5rem; /* 24px */
+}
+html[data-density="spacious"] [data-slot="sidebar-menu-sub-button"] {
+  height: 2rem; /* 32px */
+}
+/* Tighten / loosen the gap between SidebarGroups too. */
+html[data-density="compact"] [data-slot="sidebar-group"] {
+  padding-top: 0.125rem;
+  padding-bottom: 0.125rem;
+}
+html[data-density="spacious"] [data-slot="sidebar-group"] {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Theme presets — surface palette swaps only.
+
+   The brand primary (SIRPurple `#8E2DFF`), the chart gradient, and
+   semantic alert tones (success / warning / attention / info /
+   destructive) stay constant across every preset — those *are* the
+   brand. Each preset re-skins only the chrome:
+     background, card, popover, secondary, muted, accent, border,
+     input, sidebar, sidebar-accent, sidebar-border.
+   ───────────────────────────────────────────────────────────── */
+
+/* Lavender — soft purple wash on surfaces ─────────────────────── */
+[data-theme-preset="lavender"] {
+  --background: #faf7ff;
+  --card: #ffffff;
+  --popover: #ffffff;
+  --secondary: #f3edfb;
+  --muted: #f3edfb;
+  --accent: #e8def8;
+  --border: #e0d4f0;
+  --input: #e0d4f0;
+  --sidebar: #f5eefb;
+  --sidebar-accent: #ebdff7;
+  --sidebar-border: #e0d4f0;
+}
+.dark[data-theme-preset="lavender"] {
+  --background: #0e0a18;
+  --card: #1a1228;
+  --popover: #1f1730;
+  --secondary: #1f1730;
+  --muted: #1f1730;
+  --accent: #2b1f3e;
+  --border: rgba(185, 138, 255, 0.14);
+  --input: rgba(185, 138, 255, 0.18);
+  --sidebar: #1a1228;
+  --sidebar-accent: #2b1f3e;
+  --sidebar-border: rgba(185, 138, 255, 0.14);
+}
+
+/* Plum — saturated violet, brand-forward ──────────────────────── */
+[data-theme-preset="plum"] {
+  --background: #f3ecff;
+  --card: #fefbff;
+  --popover: #ffffff;
+  --secondary: #e8def5;
+  --muted: #e8def5;
+  --accent: #d6c2f0;
+  --border: #c8b3e8;
+  --input: #c8b3e8;
+  --sidebar: #ebdff7;
+  --sidebar-accent: #d8c5ed;
+  --sidebar-border: #c8b3e8;
+}
+.dark[data-theme-preset="plum"] {
+  --background: #160c24;
+  --card: #221638;
+  --popover: #2a1a3d;
+  --secondary: #221638;
+  --muted: #221638;
+  --accent: #3a2553;
+  --border: rgba(142, 45, 255, 0.20);
+  --input: rgba(142, 45, 255, 0.24);
+  --sidebar: #221638;
+  --sidebar-accent: #3a2553;
+  --sidebar-border: rgba(142, 45, 255, 0.20);
+}
+
+/* Slate — cool blue-grey ──────────────────────────────────────── */
+[data-theme-preset="slate"] {
+  --background: #f8fafc;
+  --card: #ffffff;
+  --popover: #ffffff;
+  --secondary: #f1f5f9;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #e2e8f0;
+  --border: #cbd5e1;
+  --input: #cbd5e1;
+  --sidebar: #f1f5f9;
+  --sidebar-accent: #e2e8f0;
+  --sidebar-border: #cbd5e1;
+}
+.dark[data-theme-preset="slate"] {
+  --background: #0f172a;
+  --card: #1e293b;
+  --popover: #334155;
+  --secondary: #1e293b;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --accent: #334155;
+  --border: rgba(148, 163, 184, 0.16);
+  --input: rgba(148, 163, 184, 0.20);
+  --sidebar: #1e293b;
+  --sidebar-accent: #334155;
+  --sidebar-border: rgba(148, 163, 184, 0.16);
+}
+
+/* Stone — warm sand / beige ───────────────────────────────────── */
+[data-theme-preset="stone"] {
+  --background: #fafaf9;
+  --card: #ffffff;
+  --popover: #ffffff;
+  --secondary: #f5f5f4;
+  --muted: #f5f5f4;
+  --muted-foreground: #78716c;
+  --accent: #e7e5e4;
+  --border: #d6d3d1;
+  --input: #d6d3d1;
+  --sidebar: #f5f5f4;
+  --sidebar-accent: #e7e5e4;
+  --sidebar-border: #d6d3d1;
+}
+.dark[data-theme-preset="stone"] {
+  --background: #1c1917;
+  --card: #292524;
+  --popover: #44403c;
+  --secondary: #292524;
+  --muted: #292524;
+  --muted-foreground: #a8a29e;
+  --accent: #44403c;
+  --border: rgba(168, 162, 158, 0.16);
+  --input: rgba(168, 162, 158, 0.20);
+  --sidebar: #292524;
+  --sidebar-accent: #44403c;
+  --sidebar-border: rgba(168, 162, 158, 0.16);
+}
+
+/* Mocha — warm chocolate ──────────────────────────────────────── */
+[data-theme-preset="mocha"] {
+  --background: #faf6f2;
+  --card: #ffffff;
+  --popover: #ffffff;
+  --secondary: #f0e8de;
+  --muted: #f0e8de;
+  --muted-foreground: #7d6852;
+  --accent: #e3d4bf;
+  --border: #d4c2a8;
+  --input: #d4c2a8;
+  --sidebar: #f0e8de;
+  --sidebar-accent: #e3d4bf;
+  --sidebar-border: #d4c2a8;
+}
+.dark[data-theme-preset="mocha"] {
+  --background: #1e1812;
+  --card: #2a201a;
+  --popover: #322620;
+  --secondary: #2a201a;
+  --muted: #2a201a;
+  --muted-foreground: #a8927a;
+  --accent: #3a2c24;
+  --border: rgba(218, 165, 119, 0.14);
+  --input: rgba(218, 165, 119, 0.18);
+  --sidebar: #2a201a;
+  --sidebar-accent: #3a2c24;
+  --sidebar-border: rgba(218, 165, 119, 0.14);
+}
+
+/* Dusk — twilight blue-purple ─────────────────────────────────── */
+[data-theme-preset="dusk"] {
+  --background: #f3f4ff;
+  --card: #ffffff;
+  --popover: #ffffff;
+  --secondary: #e5e8ff;
+  --muted: #e5e8ff;
+  --muted-foreground: #6b73a3;
+  --accent: #d1d6ff;
+  --border: #b9c0ee;
+  --input: #b9c0ee;
+  --sidebar: #e5e8ff;
+  --sidebar-accent: #d1d6ff;
+  --sidebar-border: #b9c0ee;
+}
+.dark[data-theme-preset="dusk"] {
+  --background: #0a0d1f;
+  --card: #161a2e;
+  --popover: #1d2240;
+  --secondary: #161a2e;
+  --muted: #161a2e;
+  --muted-foreground: #9aa3c8;
+  --accent: #252b50;
+  --border: rgba(180, 198, 255, 0.14);
+  --input: rgba(180, 198, 255, 0.18);
+  --sidebar: #161a2e;
+  --sidebar-accent: #252b50;
+  --sidebar-border: rgba(180, 198, 255, 0.14);
+}
+
+/* Carbon — pure high contrast ─────────────────────────────────── */
+[data-theme-preset="carbon"] {
+  --background: #ffffff;
+  --foreground: #000000;
+  --card: #ffffff;
+  --card-foreground: #000000;
+  --popover: #ffffff;
+  --popover-foreground: #000000;
+  --secondary: #f4f4f5;
+  --muted: #f4f4f5;
+  --muted-foreground: #52525b;
+  --accent: #e4e4e7;
+  --border: #d4d4d8;
+  --input: #d4d4d8;
+  --sidebar: #f4f4f5;
+  --sidebar-foreground: #000000;
+  --sidebar-accent: #e4e4e7;
+  --sidebar-accent-foreground: #000000;
+  --sidebar-border: #d4d4d8;
+}
+.dark[data-theme-preset="carbon"] {
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #0a0a0a;
+  --card-foreground: #ffffff;
+  --popover: #141414;
+  --popover-foreground: #ffffff;
+  --secondary: #141414;
+  --muted: #141414;
+  --muted-foreground: #a1a1aa;
+  --accent: #1f1f1f;
+  --border: rgba(255, 255, 255, 0.12);
+  --input: rgba(255, 255, 255, 0.16);
+  --sidebar: #0a0a0a;
+  --sidebar-foreground: #ffffff;
+  --sidebar-accent: #1f1f1f;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.12);
+}
