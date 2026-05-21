@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import type { ColumnDef } from "@tanstack/react-table"
+import type { ColumnDef, Table as RTTable } from "@tanstack/react-table"
 import {
   Activity,
   AlertCircle,
@@ -20,7 +20,8 @@ import { Badge } from "@/components/ui/badge"
 import { PageHeader } from "@/components/shared/page-header"
 import { KpiCard } from "@/components/shared/kpi-card"
 import { playbookRuns, type LabRun, type RunStatus } from "@/data/autonomy"
-import { AutonomyDataTable } from "../autonomy-sortable-table"
+import { AutonomyDataTable, type AutonomyTableDensity } from "../autonomy-sortable-table"
+import { AutonomyViewSettings } from "../autonomy-view-settings"
 import { DataTableColumnHeader } from "@/components/shared/data-table"
 import { Segmented } from "./_segmented"
 import {
@@ -47,6 +48,8 @@ const LAB_FILTER_INIT = { status: [] as string[], container: [] as string[], tri
 export function LabTab() {
   const [sub, setSub] = useState<SubKey>("playbooks")
   const [query, setQuery] = useState("")
+  const [density, setDensity] = useState<AutonomyTableDensity>("comfortable")
+  const [listTable, setListTable] = useState<RTTable<LabRun> | null>(null)
   const { filters, setFilters, reset, active } = useFilters(LAB_FILTER_INIT)
 
   const filtered = playbookRuns.filter((r) => {
@@ -144,12 +147,18 @@ export function LabTab() {
             <X className="size-3.5" />
           </Button>
         )}
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          <AutonomyViewSettings
+            currentView="list"
+            table={listTable}
+            density={density}
+            onDensityChange={setDensity}
+          />
           <AutonomyFilterPopover groups={FILTER_GROUPS} value={filters} onChange={setFilters} />
         </div>
       </div>
 
-      <LabRunsTableSortable runs={filtered} />
+      <LabRunsTableSortable runs={filtered} density={density} onTableReady={setListTable} />
     </div>
   )
 }
@@ -262,7 +271,15 @@ const labRunColumns: ColumnDef<LabRun>[] = [
   },
 ]
 
-function LabRunsTableSortable({ runs }: { runs: LabRun[] }) {
+function LabRunsTableSortable({
+  runs,
+  density,
+  onTableReady,
+}: {
+  runs: LabRun[]
+  density: AutonomyTableDensity
+  onTableReady: (t: RTTable<LabRun>) => void
+}) {
   const columns = useMemo(() => labRunColumns, [])
   return (
     <AutonomyDataTable
@@ -270,6 +287,8 @@ function LabRunsTableSortable({ runs }: { runs: LabRun[] }) {
       columns={columns}
       getRowId={(r) => r.id}
       emptyMessage="No runs match your filters."
+      density={density}
+      onTableReady={onTableReady}
     />
   )
 }

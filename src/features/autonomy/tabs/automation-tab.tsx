@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import type { ColumnDef } from "@tanstack/react-table"
+import type { ColumnDef, Table as RTTable } from "@tanstack/react-table"
 import {
   Boxes,
   Cable,
@@ -45,7 +45,8 @@ import {
   ingestionModeOptions,
 } from "../_filters"
 import { VendorLogo, getVendorBrand } from "../_vendor-logo"
-import { AutonomyDataTable } from "../autonomy-sortable-table"
+import { AutonomyDataTable, type AutonomyTableDensity } from "../autonomy-sortable-table"
+import { AutonomyViewSettings } from "../autonomy-view-settings"
 import { DataTableColumnHeader } from "@/components/shared/data-table"
 import { cn } from "@/lib/utils"
 
@@ -118,6 +119,8 @@ const APP_FILTER_INIT = { status: [], category: [], vendor: [] }
 function ApplicationsView() {
   const [query, setQuery] = useState("")
   const [view, setView] = useState<ViewMode>("card")
+  const [density, setDensity] = useState<AutonomyTableDensity>("comfortable")
+  const [listTable, setListTable] = useState<RTTable<Application> | null>(null)
   const { filters, setFilters, reset, active } = useFilters(APP_FILTER_INIT)
 
   const filtered = applications.filter((a) => {
@@ -143,12 +146,13 @@ function ApplicationsView() {
           reset()
           setQuery("")
         }}
+        display={{ table: listTable, density, onDensityChange: setDensity }}
       />
       {filtered.length === 0
         ? <EmptyState icon={<Plug className="size-5" />} title="No applications match" line="Try adjusting your search or filters." />
         : view === "card"
-          ? <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{filtered.map((a) => <AppCard key={a.id} app={a} />)}</div>
-          : <ApplicationsListTable apps={filtered} />}
+          ? <div className={cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4", density === "compact" ? "gap-2" : "gap-3")}>{filtered.map((a) => <AppCard key={a.id} app={a} />)}</div>
+          : <ApplicationsListTable apps={filtered} density={density} onTableReady={setListTable} />}
     </div>
   )
 }
@@ -268,9 +272,25 @@ const applicationTableColumns: ColumnDef<Application>[] = [
   },
 ]
 
-function ApplicationsListTable({ apps }: { apps: Application[] }) {
+function ApplicationsListTable({
+  apps,
+  density,
+  onTableReady,
+}: {
+  apps: Application[]
+  density: AutonomyTableDensity
+  onTableReady: (t: RTTable<Application>) => void
+}) {
   const columns = useMemo(() => applicationTableColumns, [])
-  return <AutonomyDataTable data={apps} columns={columns} getRowId={(r) => r.id} />
+  return (
+    <AutonomyDataTable
+      data={apps}
+      columns={columns}
+      getRowId={(r) => r.id}
+      density={density}
+      onTableReady={onTableReady}
+    />
+  )
 }
 
 function statusMeta(s: Application["status"]) {
@@ -301,6 +321,8 @@ type ActionRow = (typeof ACTIONS_DATA)[number]
 function ActionsView() {
   const [query, setQuery] = useState("")
   const [view, setView] = useState<ViewMode>("list")
+  const [density, setDensity] = useState<AutonomyTableDensity>("comfortable")
+  const [listTable, setListTable] = useState<RTTable<ActionRow> | null>(null)
   const ACTIONS_FILTER_INIT = { scope: [] as string[], vendor: [] as string[] }
   const { filters, setFilters, reset, active } = useFilters(ACTIONS_FILTER_INIT)
   const rows = ACTIONS_DATA.filter((r) => {
@@ -323,12 +345,13 @@ function ActionsView() {
           reset()
           setQuery("")
         }}
+        display={{ table: listTable, density, onDensityChange: setDensity }}
       />
       {rows.length === 0
         ? <EmptyState icon={<Zap className="size-5" />} title="No actions match" line="Try adjusting your search or filters." />
         : view === "card"
-          ? <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">{rows.map((r) => <ActionCard key={r.id} row={r} />)}</div>
-          : <ActionsListTableSortable rows={rows} />}
+          ? <div className={cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3", density === "compact" ? "gap-2" : "gap-3")}>{rows.map((r) => <ActionCard key={r.id} row={r} />)}</div>
+          : <ActionsListTableSortable rows={rows} density={density} onTableReady={setListTable} />}
     </div>
   )
 }
@@ -416,9 +439,25 @@ const actionTableColumns: ColumnDef<ActionRow>[] = [
   },
 ]
 
-function ActionsListTableSortable({ rows }: { rows: ActionRow[] }) {
+function ActionsListTableSortable({
+  rows,
+  density,
+  onTableReady,
+}: {
+  rows: ActionRow[]
+  density: AutonomyTableDensity
+  onTableReady: (t: RTTable<ActionRow>) => void
+}) {
   const columns = useMemo(() => actionTableColumns, [])
-  return <AutonomyDataTable data={rows} columns={columns} getRowId={(r) => r.id} />
+  return (
+    <AutonomyDataTable
+      data={rows}
+      columns={columns}
+      getRowId={(r) => r.id}
+      density={density}
+      onTableReady={onTableReady}
+    />
+  )
 }
 
 /* ── Ingestion sources ────────────────────────────────────────── */
@@ -440,6 +479,8 @@ const ING_FILTER_GROUPS: FilterGroup[] = [
 function IngestionView() {
   const [query, setQuery] = useState("")
   const [view, setView] = useState<ViewMode>("card")
+  const [density, setDensity] = useState<AutonomyTableDensity>("comfortable")
+  const [listTable, setListTable] = useState<RTTable<Source> | null>(null)
   const ING_FILTER_INIT = { mode: [] as string[], health: [] as string[], vendor: [] as string[] }
   const { filters, setFilters, reset, active } = useFilters(ING_FILTER_INIT)
   const rows = SOURCES.filter((s) => {
@@ -463,12 +504,13 @@ function IngestionView() {
           reset()
           setQuery("")
         }}
+        display={{ table: listTable, density, onDensityChange: setDensity }}
       />
       {rows.length === 0
         ? <EmptyState icon={<Cable className="size-5" />} title="No sources match" line="Try adjusting your search or filters." />
         : view === "card"
-          ? <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{rows.map((s) => <SourceCard key={s.id} src={s} />)}</div>
-          : <SourcesListTableSortable sources={rows} />}
+          ? <div className={cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4", density === "compact" ? "gap-2" : "gap-3")}>{rows.map((s) => <SourceCard key={s.id} src={s} />)}</div>
+          : <SourcesListTableSortable sources={rows} density={density} onTableReady={setListTable} />}
     </div>
   )
 }
@@ -597,9 +639,25 @@ const sourceTableColumns: ColumnDef<Source>[] = [
   },
 ]
 
-function SourcesListTableSortable({ sources }: { sources: Source[] }) {
+function SourcesListTableSortable({
+  sources,
+  density,
+  onTableReady,
+}: {
+  sources: Source[]
+  density: AutonomyTableDensity
+  onTableReady: (t: RTTable<Source>) => void
+}) {
   const columns = useMemo(() => sourceTableColumns, [])
-  return <AutonomyDataTable data={sources} columns={columns} getRowId={(r) => r.id} />
+  return (
+    <AutonomyDataTable
+      data={sources}
+      columns={columns}
+      getRowId={(r) => r.id}
+      density={density}
+      onTableReady={onTableReady}
+    />
+  )
 }
 
 /* ── Artifact types ───────────────────────────────────────────── */
@@ -623,6 +681,8 @@ type TypeRow = (typeof TYPES_DATA)[number]
 function ArtifactTypesView() {
   const [query, setQuery] = useState("")
   const [view, setView] = useState<ViewMode>("card")
+  const [density, setDensity] = useState<AutonomyTableDensity>("comfortable")
+  const [listTable, setListTable] = useState<RTTable<TypeRow> | null>(null)
   const AT_FILTER_INIT = { origin: [] as string[] }
   const { filters, setFilters, reset, active } = useFilters(AT_FILTER_INIT)
   const rows = TYPES_DATA.filter((t) => {
@@ -644,12 +704,13 @@ function ArtifactTypesView() {
           reset()
           setQuery("")
         }}
+        display={{ table: listTable, density, onDensityChange: setDensity }}
       />
       {rows.length === 0
         ? <EmptyState icon={<Boxes className="size-5" />} title="No artifact types match" line="Try adjusting your search or filters." />
         : view === "card"
-          ? <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{rows.map((t) => <ArtifactTypeCard key={t.id} row={t} />)}</div>
-          : <ArtifactTypesListTableSortable rows={rows} />}
+          ? <div className={cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4", density === "compact" ? "gap-2" : "gap-3")}>{rows.map((t) => <ArtifactTypeCard key={t.id} row={t} />)}</div>
+          : <ArtifactTypesListTableSortable rows={rows} density={density} onTableReady={setListTable} />}
     </div>
   )
 }
@@ -739,13 +800,29 @@ const artifactTypeTableColumns: ColumnDef<TypeRow>[] = [
   },
 ]
 
-function ArtifactTypesListTableSortable({ rows }: { rows: TypeRow[] }) {
+function ArtifactTypesListTableSortable({
+  rows,
+  density,
+  onTableReady,
+}: {
+  rows: TypeRow[]
+  density: AutonomyTableDensity
+  onTableReady: (t: RTTable<TypeRow>) => void
+}) {
   const columns = useMemo(() => artifactTypeTableColumns, [])
-  return <AutonomyDataTable data={[...rows]} columns={columns} getRowId={(r) => r.id} />
+  return (
+    <AutonomyDataTable
+      data={[...rows]}
+      columns={columns}
+      getRowId={(r) => r.id}
+      density={density}
+      onTableReady={onTableReady}
+    />
+  )
 }
 
 /* ── Shared toolbar ───────────────────────────────────────────── */
-function Toolbar({
+function Toolbar<TData>({
   query,
   onQuery,
   placeholder,
@@ -755,6 +832,7 @@ function Toolbar({
   right,
   showReset,
   onReset,
+  display,
 }: {
   query: string
   onQuery: (v: string) => void
@@ -765,6 +843,11 @@ function Toolbar({
   right?: React.ReactNode
   showReset?: boolean
   onReset?: () => void
+  display?: {
+    table: RTTable<TData> | null
+    density: AutonomyTableDensity
+    onDensityChange: (d: AutonomyTableDensity) => void
+  }
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -817,6 +900,14 @@ function Toolbar({
           </div>
         )}
         {right}
+        {display && (
+          <AutonomyViewSettings
+            currentView={view ?? "list"}
+            table={display.table}
+            density={display.density}
+            onDensityChange={display.onDensityChange}
+          />
+        )}
         {filters}
       </div>
     </div>

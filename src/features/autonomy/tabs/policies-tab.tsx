@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import type { ColumnDef } from "@tanstack/react-table"
+import type { ColumnDef, Table as RTTable } from "@tanstack/react-table"
 import {
   ChevronDown,
   Circle,
@@ -37,7 +37,8 @@ import {
   policyEffectOptions,
   policyStatusOptions,
 } from "../_filters"
-import { AutonomyDataTable } from "../autonomy-sortable-table"
+import { AutonomyDataTable, type AutonomyTableDensity } from "../autonomy-sortable-table"
+import { AutonomyViewSettings } from "../autonomy-view-settings"
 import { DataTableColumnHeader } from "@/components/shared/data-table"
 
 const CONTROL_POLICY_FILTER_GROUPS: FilterGroup[] = [
@@ -214,6 +215,8 @@ function ApprovalWorkflowsView() {
 
 function ControlPoliciesView() {
   const [query, setQuery] = useState("")
+  const [density, setDensity] = useState<AutonomyTableDensity>("comfortable")
+  const [listTable, setListTable] = useState<RTTable<ControlPolicy> | null>(null)
   const { filters, setFilters } = useFilters({ effect: [], status: [] })
 
   const filtered = controlPolicies.filter((p) => {
@@ -236,9 +239,17 @@ function ControlPoliciesView() {
             className="h-9 pl-9"
           />
         </div>
-        <AutonomyFilterPopover groups={CONTROL_POLICY_FILTER_GROUPS} value={filters} onChange={setFilters} />
+        <div className="ml-auto flex items-center gap-2">
+          <AutonomyViewSettings
+            currentView="list"
+            table={listTable}
+            density={density}
+            onDensityChange={setDensity}
+          />
+          <AutonomyFilterPopover groups={CONTROL_POLICY_FILTER_GROUPS} value={filters} onChange={setFilters} />
+        </div>
       </div>
-      <ControlPoliciesTableSortable policies={filtered} />
+      <ControlPoliciesTableSortable policies={filtered} density={density} onTableReady={setListTable} />
     </div>
   )
 }
@@ -327,7 +338,15 @@ const controlPolicyColumns: ColumnDef<ControlPolicy>[] = [
   },
 ]
 
-function ControlPoliciesTableSortable({ policies }: { policies: ControlPolicy[] }) {
+function ControlPoliciesTableSortable({
+  policies,
+  density,
+  onTableReady,
+}: {
+  policies: ControlPolicy[]
+  density: AutonomyTableDensity
+  onTableReady: (t: RTTable<ControlPolicy>) => void
+}) {
   const columns = useMemo(() => controlPolicyColumns, [])
   return (
     <AutonomyDataTable
@@ -335,6 +354,8 @@ function ControlPoliciesTableSortable({ policies }: { policies: ControlPolicy[] 
       columns={columns}
       getRowId={(p) => p.id}
       emptyMessage="No policies match your filters."
+      density={density}
+      onTableReady={onTableReady}
     />
   )
 }

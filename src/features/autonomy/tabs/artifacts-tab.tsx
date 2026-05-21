@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import type { ColumnDef } from "@tanstack/react-table"
+import type { ColumnDef, Table as RTTable } from "@tanstack/react-table"
 import {
   AtSign,
   Boxes,
@@ -32,7 +32,8 @@ import { PageHeader } from "@/components/shared/page-header"
 import { KpiCard } from "@/components/shared/kpi-card"
 import { artifacts, type Artifact } from "@/data/autonomy"
 import { cn } from "@/lib/utils"
-import { AutonomyDataTable } from "../autonomy-sortable-table"
+import { AutonomyDataTable, type AutonomyTableDensity } from "../autonomy-sortable-table"
+import { AutonomyViewSettings } from "../autonomy-view-settings"
 import { DataTableColumnHeader } from "@/components/shared/data-table"
 import {
   AutonomyFilterPopover,
@@ -64,6 +65,8 @@ const ARTIFACT_FILTER_INIT = { type: [] as string[], status: [] as string[] }
 export function ArtifactsTab() {
   const [query, setQuery] = useState("")
   const [view, setView] = useState<ViewMode>("list")
+  const [density, setDensity] = useState<AutonomyTableDensity>("comfortable")
+  const [listTable, setListTable] = useState<RTTable<Artifact> | null>(null)
   const { filters, setFilters, reset, active } = useFilters(ARTIFACT_FILTER_INIT)
 
   const filtered = artifacts.filter((a) => {
@@ -161,6 +164,12 @@ export function ArtifactsTab() {
           <Button variant="outline" size="sm" className="h-9">
             <Download className="size-4" />Export
           </Button>
+          <AutonomyViewSettings
+            currentView={view}
+            table={listTable}
+            density={density}
+            onDensityChange={setDensity}
+          />
           <AutonomyFilterPopover groups={FILTER_GROUPS} value={filters} onChange={setFilters} />
         </div>
       </div>
@@ -170,13 +179,18 @@ export function ArtifactsTab() {
           No artifacts match your filters.
         </div>
       ) : view === "card" ? (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div
+          className={cn(
+            "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+            density === "compact" ? "gap-2" : "gap-3"
+          )}
+        >
           {filtered.map((a) => (
             <ArtifactCard key={a.id} artifact={a} />
           ))}
         </div>
       ) : (
-        <ArtifactsListTableSortable rows={filtered} />
+        <ArtifactsListTableSortable rows={filtered} density={density} onTableReady={setListTable} />
       )}
     </div>
   )
@@ -354,7 +368,15 @@ const artifactListColumns: ColumnDef<Artifact>[] = [
   },
 ]
 
-function ArtifactsListTableSortable({ rows }: { rows: Artifact[] }) {
+function ArtifactsListTableSortable({
+  rows,
+  density,
+  onTableReady,
+}: {
+  rows: Artifact[]
+  density: AutonomyTableDensity
+  onTableReady: (t: RTTable<Artifact>) => void
+}) {
   const columns = useMemo(() => artifactListColumns, [])
   return (
     <AutonomyDataTable
@@ -362,6 +384,8 @@ function ArtifactsListTableSortable({ rows }: { rows: Artifact[] }) {
       columns={columns}
       getRowId={(r) => r.id}
       emptyMessage="No artifacts match your filters."
+      density={density}
+      onTableReady={onTableReady}
     />
   )
 }

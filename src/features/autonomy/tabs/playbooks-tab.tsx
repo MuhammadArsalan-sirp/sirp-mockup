@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import type { ColumnDef } from "@tanstack/react-table"
+import type { ColumnDef, Table as RTTable } from "@tanstack/react-table"
 import {
   CheckCircle2,
   Circle,
@@ -40,7 +40,8 @@ import {
   playbookOwnerOptions,
   playbookStatusOptions,
 } from "../_filters"
-import { AutonomyDataTable } from "../autonomy-sortable-table"
+import { AutonomyDataTable, type AutonomyTableDensity } from "../autonomy-sortable-table"
+import { AutonomyViewSettings } from "../autonomy-view-settings"
 import { DataTableColumnHeader } from "@/components/shared/data-table"
 
 const MINE_OWNER = "Ahmed Khan"
@@ -67,6 +68,8 @@ const FILTER_GROUPS: FilterGroup[] = [
 
 export function PlaybooksTab() {
   const [query, setQuery] = useState("")
+  const [density, setDensity] = useState<AutonomyTableDensity>("comfortable")
+  const [listTable, setListTable] = useState<RTTable<Playbook> | null>(null)
   const { filters, setFilters } = useFilters(FILTER_INIT)
 
   const library = filters.library[0] as "all" | "mine" | "marketplace" | undefined
@@ -183,6 +186,12 @@ export function PlaybooksTab() {
             <Download className="size-4" />
             Export
           </Button>
+          <AutonomyViewSettings
+            currentView="list"
+            table={listTable}
+            density={density}
+            onDensityChange={setDensity}
+          />
           <AutonomyFilterPopover groups={FILTER_GROUPS} value={filters} onChange={setFilters} />
         </div>
       </div>
@@ -190,7 +199,7 @@ export function PlaybooksTab() {
       {library === "marketplace" ? (
         <MarketplaceEmpty />
       ) : (
-        <PlaybooksTableSortable data={data} />
+        <PlaybooksTableSortable data={data} density={density} onTableReady={setListTable} />
       )}
     </div>
   )
@@ -349,7 +358,15 @@ const playbookTableColumns: ColumnDef<Playbook>[] = [
   },
 ]
 
-function PlaybooksTableSortable({ data }: { data: Playbook[] }) {
+function PlaybooksTableSortable({
+  data,
+  density,
+  onTableReady,
+}: {
+  data: Playbook[]
+  density: AutonomyTableDensity
+  onTableReady: (t: RTTable<Playbook>) => void
+}) {
   const columns = useMemo(() => playbookTableColumns, [])
   return (
     <AutonomyDataTable
@@ -357,6 +374,8 @@ function PlaybooksTableSortable({ data }: { data: Playbook[] }) {
       columns={columns}
       getRowId={(r) => r.id}
       emptyMessage="No playbooks match your filters."
+      density={density}
+      onTableReady={onTableReady}
     />
   )
 }

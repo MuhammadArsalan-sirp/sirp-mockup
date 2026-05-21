@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   flexRender,
   getCoreRowModel,
@@ -6,6 +6,8 @@ import {
   useReactTable,
   type ColumnDef,
   type SortingState,
+  type Table as RTTable,
+  type VisibilityState,
 } from "@tanstack/react-table"
 import {
   Table,
@@ -22,6 +24,8 @@ export type AutonomyColumnMeta = {
   tdClass?: string
 }
 
+export type AutonomyTableDensity = "comfortable" | "compact"
+
 function metaOf(def: { meta?: unknown }): AutonomyColumnMeta {
   return (def.meta ?? {}) as AutonomyColumnMeta
 }
@@ -32,10 +36,14 @@ type Props<TData extends object> = {
   getRowId?: (row: TData, index: number) => string
   initialSorting?: SortingState
   emptyMessage?: string
+  /** Lift the table instance so a parent toolbar (e.g. Display popover) can read sorting / visibility / columns. */
+  onTableReady?: (table: RTTable<TData>) => void
+  density?: AutonomyTableDensity
 }
 
 /**
  * Autonomy list tables — same sortable header UX as incidents (DataTableColumnHeader).
+ * Defaults to `enableHiding: true` so the Display popover can toggle column visibility.
  */
 export function AutonomyDataTable<TData extends object>({
   data,
@@ -43,23 +51,34 @@ export function AutonomyDataTable<TData extends object>({
   getRowId,
   initialSorting = [],
   emptyMessage = "No rows.",
+  onTableReady,
+  density = "comfortable",
 }: Props<TData>) {
   const [sorting, setSorting] = useState<SortingState>(initialSorting)
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
 
   const table = useReactTable({
     data,
     columns,
-    state: { sorting },
+    state: { sorting, columnVisibility },
     onSortingChange: setSorting,
+    onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getRowId: getRowId ? (row, i) => getRowId(row as TData, i) : undefined,
     defaultColumn: {
-      enableHiding: false,
+      enableHiding: true,
     },
   })
 
+  useEffect(() => {
+    onTableReady?.(table)
+  }, [table, onTableReady])
+
   const rows = table.getRowModel().rows
+  const visibleCols = table.getVisibleLeafColumns().length
+
+  const cellY = density === "compact" ? "py-1.5" : "py-3"
 
   return (
     <div className="overflow-hidden rounded-md border">
@@ -90,7 +109,7 @@ export function AutonomyDataTable<TData extends object>({
           {rows.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={columns.length}
+                colSpan={visibleCols}
                 className="h-24 px-4 text-center text-muted-foreground"
               >
                 {emptyMessage}
@@ -104,7 +123,7 @@ export function AutonomyDataTable<TData extends object>({
                   return (
                     <TableCell
                       key={cell.id}
-                      className={cn("px-4 py-3 text-sm", meta?.tdClass)}
+                      className={cn("px-4 text-sm", cellY, meta?.tdClass)}
                     >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>

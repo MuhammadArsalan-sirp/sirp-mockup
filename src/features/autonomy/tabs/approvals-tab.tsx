@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import type { ColumnDef } from "@tanstack/react-table"
+import type { ColumnDef, Table as RTTable } from "@tanstack/react-table"
 import {
   AlertCircle,
   Check,
@@ -29,7 +29,8 @@ import {
 } from "../_filter-popover"
 import { approvalAppOptions, approvalQueueOptions } from "../_filters"
 import { cn } from "@/lib/utils"
-import { AutonomyDataTable } from "../autonomy-sortable-table"
+import { AutonomyDataTable, type AutonomyTableDensity } from "../autonomy-sortable-table"
+import { AutonomyViewSettings } from "../autonomy-view-settings"
 import { DataTableColumnHeader } from "@/components/shared/data-table"
 
 type ViewMode = "card" | "list"
@@ -50,6 +51,8 @@ const FILTER_GROUPS: FilterGroup[] = [
 export function ApprovalsTab() {
   const [query, setQuery] = useState("")
   const [view, setView] = useState<ViewMode>("card")
+  const [density, setDensity] = useState<AutonomyTableDensity>("comfortable")
+  const [listTable, setListTable] = useState<RTTable<ApprovalRequest> | null>(null)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const { filters, setFilters } = useFilters(FILTER_INIT)
 
@@ -141,6 +144,12 @@ export function ApprovalsTab() {
             List
           </button>
         </div>
+        <AutonomyViewSettings
+          currentView={view}
+          table={listTable}
+          density={density}
+          onDensityChange={setDensity}
+        />
         <AutonomyFilterPopover groups={FILTER_GROUPS} value={filters} onChange={setFilters} />
       </div>
 
@@ -151,11 +160,16 @@ export function ApprovalsTab() {
           <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">No requests match your current view.</p>
         </div>
       ) : view === "card" ? (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
+        <div
+          className={cn(
+            "grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3",
+            density === "compact" ? "gap-2" : "gap-4"
+          )}
+        >
           {filtered.map((req) => <ApprovalCard key={req.id} req={req} selected={selected.has(req.id)} onToggle={() => toggle(req.id)} />)}
         </div>
       ) : (
-        <ApprovalsListTableSortable requests={filtered} />
+        <ApprovalsListTableSortable requests={filtered} density={density} onTableReady={setListTable} />
       )}
 
       {selected.size > 0 && (
@@ -315,7 +329,23 @@ const approvalListColumns: ColumnDef<ApprovalRequest>[] = [
   },
 ]
 
-function ApprovalsListTableSortable({ requests }: { requests: ApprovalRequest[] }) {
+function ApprovalsListTableSortable({
+  requests,
+  density,
+  onTableReady,
+}: {
+  requests: ApprovalRequest[]
+  density: AutonomyTableDensity
+  onTableReady: (t: RTTable<ApprovalRequest>) => void
+}) {
   const columns = useMemo(() => approvalListColumns, [])
-  return <AutonomyDataTable data={requests} columns={columns} getRowId={(r) => r.id} />
+  return (
+    <AutonomyDataTable
+      data={requests}
+      columns={columns}
+      getRowId={(r) => r.id}
+      density={density}
+      onTableReady={onTableReady}
+    />
+  )
 }

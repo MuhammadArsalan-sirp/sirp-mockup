@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import type { ColumnDef } from "@tanstack/react-table"
+import type { ColumnDef, Table as RTTable } from "@tanstack/react-table"
 import {
   Activity,
   Bot,
@@ -37,7 +37,8 @@ import {
   agentStageOptions,
 } from "../_filters"
 import { cn } from "@/lib/utils"
-import { AutonomyDataTable } from "../autonomy-sortable-table"
+import { AutonomyDataTable, type AutonomyTableDensity } from "../autonomy-sortable-table"
+import { AutonomyViewSettings } from "../autonomy-view-settings"
 import { DataTableColumnHeader } from "@/components/shared/data-table"
 
 type ViewMode = "card" | "list"
@@ -59,6 +60,8 @@ const FILTER_INIT = { scope: [] as string[], module: [] as string[], stage: [] a
 export function AgentsTab() {
   const [query, setQuery] = useState("")
   const [view, setView] = useState<ViewMode>("card")
+  const [density, setDensity] = useState<AutonomyTableDensity>("comfortable")
+  const [listTable, setListTable] = useState<RTTable<Agent> | null>(null)
   const { filters, setFilters } = useFilters(FILTER_INIT)
 
   const scope = (filters.scope[0] ?? "all_active") as
@@ -149,6 +152,12 @@ export function AgentsTab() {
             List
           </button>
         </div>
+        <AutonomyViewSettings
+          currentView={view}
+          table={listTable}
+          density={density}
+          onDensityChange={setDensity}
+        />
         <AutonomyFilterPopover groups={FILTER_GROUPS} value={filters} onChange={setFilters} />
       </div>
 
@@ -159,11 +168,16 @@ export function AgentsTab() {
           <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">Try clearing the search or switching scope.</p>
         </div>
       ) : view === "card" ? (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div
+          className={cn(
+            "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3",
+            density === "compact" ? "gap-2" : "gap-4"
+          )}
+        >
           {filtered.map((a) => <AgentCard key={a.id} agent={a} />)}
         </div>
       ) : (
-        <AgentsListTableSortable agents={filtered} />
+        <AgentsListTableSortable agents={filtered} density={density} onTableReady={setListTable} />
       )}
     </div>
   )
@@ -324,7 +338,23 @@ const agentListColumns: ColumnDef<Agent>[] = [
   },
 ]
 
-function AgentsListTableSortable({ agents }: { agents: Agent[] }) {
+function AgentsListTableSortable({
+  agents,
+  density,
+  onTableReady,
+}: {
+  agents: Agent[]
+  density: AutonomyTableDensity
+  onTableReady: (t: RTTable<Agent>) => void
+}) {
   const columns = useMemo(() => agentListColumns, [])
-  return <AutonomyDataTable data={agents} columns={columns} getRowId={(r) => r.id} />
+  return (
+    <AutonomyDataTable
+      data={agents}
+      columns={columns}
+      getRowId={(r) => r.id}
+      density={density}
+      onTableReady={onTableReady}
+    />
+  )
 }
