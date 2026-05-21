@@ -6,22 +6,17 @@ import {
   CheckCircle2,
   Circle,
   Clock,
-  Cloud,
   FileText,
   Layers,
   Map,
-  Monitor,
-  Network,
   PanelRightOpen,
   Plus,
   ScrollText,
   Send,
-  Server,
   Shield,
   ShieldCheck,
   Sparkles,
   Timer,
-  Trash2,
   Wrench,
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -31,13 +26,6 @@ import {
   Card,
   CardContent,
 } from "@/components/ui/card"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
 import {
   Table,
@@ -47,7 +35,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import type { Incident } from "@/data/incidents"
 import type {
@@ -66,6 +53,7 @@ import type {
 } from "./incident-detail-mock"
 import type { DetailTab } from "./incident-detail-tabs"
 import { ArtifactsPanel } from "./incident-artifacts-panel"
+import { EntitiesPanel } from "./incident-entities-panel"
 import { IncidentOmniSenseRunner } from "./incident-omnisense-runner"
 import { IncidentOverviewTab } from "./incident-overview-tab"
 
@@ -194,176 +182,8 @@ export function IncidentDetailPanels({ tab, data, onOpenWorkbench, onOpenOmniSen
 ══════════════════════════════════════════════════════════════════════════════ */
 
 /* ══════════════════════════════════════════════════════════════════════════════
-   ENTITIES
+   ENTITIES — see incident-entities-panel.tsx
 ══════════════════════════════════════════════════════════════════════════════ */
-
-const ENTITY_TYPE_ICON: Record<string, ElementType> = {
-  "Host": Monitor,
-  "Domain controller": Server,
-  "Server": Server,
-  "SaaS": Cloud,
-}
-
-const RISK_CONFIG = {
-  critical: { label: "Critical", cls: "text-destructive",    bg: "bg-destructive/10 border-destructive/25",  stripe: "bg-destructive" },
-  high:     { label: "High",     cls: "text-amber-500",      bg: "bg-amber-500/10 border-amber-500/25",      stripe: "bg-amber-500" },
-  medium:   { label: "Medium",   cls: "text-blue-500",       bg: "bg-blue-500/10 border-blue-500/25",        stripe: "bg-blue-500" },
-  low:      { label: "Low",      cls: "text-muted-foreground", bg: "bg-muted/60 border-border",              stripe: "bg-muted-foreground/30" },
-}
-
-function S3ScoreBadge({ score }: { score: number }) {
-  const cls =
-    score > 66
-      ? "border-destructive text-destructive"
-      : score > 33
-      ? "border-amber-500 text-amber-600"
-      : "border-emerald-500 text-emerald-600"
-  return (
-    <div className={cn(
-      "grid size-9 place-items-center rounded-full border-2 font-mono text-xs font-bold tabular-nums",
-      cls
-    )}>
-      {score}
-    </div>
-  )
-}
-
-function EntitiesPanel({ entities }: { entities: EntityRow[] }) {
-  return (
-    <Card className="overflow-hidden">
-      <div className="flex items-center justify-between gap-4 px-5 py-4">
-        <div className="flex items-center gap-2">
-          <Layers className="size-3.5 shrink-0 text-muted-foreground/60" />
-          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Affected Entities</span>
-          <span className="font-mono text-xs tabular-nums text-muted-foreground/70">{entities.length}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs">
-            <Plus className="size-3" />
-            Create entity
-          </Button>
-          <Button size="sm" variant="default" className="h-7 gap-1.5 text-xs">
-            <Plus className="size-3" />
-            Add affected entity
-          </Button>
-        </div>
-      </div>
-      <CardContent className="border-t p-0">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-border/60 hover:bg-transparent [&>th]:h-10 [&>th]:bg-muted/40 [&>th]:text-[11px] [&>th]:font-semibold [&>th]:uppercase [&>th]:tracking-wide">
-                <TableHead className="w-[220px] pl-5">Name</TableHead>
-                <TableHead className="w-[140px]">Entity Type</TableHead>
-                <TableHead className="w-[120px]">Criticality</TableHead>
-                <TableHead className="w-[110px]">Owner</TableHead>
-                <TableHead className="w-[120px]">Relationships</TableHead>
-                <TableHead className="w-[90px] text-center">S3 Score</TableHead>
-                <TableHead className="w-10" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {entities.map((e) => {
-                const risk = RISK_CONFIG[e.risk] ?? RISK_CONFIG.low
-                const TypeIcon = ENTITY_TYPE_ICON[e.type] ?? Server
-                const initials = e.owner
-                  ? e.owner.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
-                  : null
-                return (
-                  <TableRow key={e.id} className="group border-border/50 hover:bg-muted/20">
-                    {/* Name */}
-                    <TableCell className="pl-5">
-                      <div className="flex items-center gap-2.5">
-                        <div className="grid size-7 shrink-0 place-items-center rounded-lg border bg-muted/40">
-                          <TypeIcon className="size-3.5 text-muted-foreground" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium">{e.name}</p>
-                          {e.ip && (
-                            <p className="font-mono text-[10px] text-muted-foreground">{e.ip}</p>
-                          )}
-                        </div>
-                      </div>
-                    </TableCell>
-
-                    {/* Entity Type */}
-                    <TableCell className="text-xs text-muted-foreground">{e.type}</TableCell>
-
-                    {/* Criticality */}
-                    <TableCell>
-                      <span className={cn(
-                        "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                        risk.bg, risk.cls
-                      )}>
-                        <span className={cn("size-1.5 rounded-full", risk.stripe)} />
-                        {risk.label}
-                      </span>
-                    </TableCell>
-
-                    {/* Owner */}
-                    <TableCell>
-                      {initials ? (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div className="flex cursor-default items-center gap-2">
-                              <Avatar className="size-6">
-                                <AvatarFallback className="bg-gradient-to-br from-violet-500 to-blue-500 text-[10px] font-bold text-white">
-                                  {initials}
-                                </AvatarFallback>
-                              </Avatar>
-                              <span className="text-xs text-muted-foreground">{e.owner!.split(" ")[0]}</span>
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent>{e.owner}</TooltipContent>
-                        </Tooltip>
-                      ) : (
-                        <span className="text-xs text-muted-foreground/40">—</span>
-                      )}
-                    </TableCell>
-
-                    {/* Relationships */}
-                    <TableCell>
-                      {e.relationships !== undefined ? (
-                        <button className="inline-flex items-center gap-1.5 rounded-full border bg-muted/40 px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:bg-primary/10 hover:text-primary">
-                          <Network className="size-3" />
-                          {String(e.relationships).padStart(2, "0")}
-                        </button>
-                      ) : (
-                        <span className="text-xs text-muted-foreground/40">—</span>
-                      )}
-                    </TableCell>
-
-                    {/* S3 Score */}
-                    <TableCell className="text-center">
-                      {e.s3Score !== undefined ? (
-                        <div className="flex justify-center">
-                          <S3ScoreBadge score={e.s3Score} />
-                        </div>
-                      ) : (
-                        <span className="text-xs text-muted-foreground/40">—</span>
-                      )}
-                    </TableCell>
-
-                    {/* Actions */}
-                    <TableCell className="pr-4">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-6 text-muted-foreground/40 opacity-0 transition-all hover:text-destructive group-hover:opacity-100"
-                      >
-                        <Trash2 className="size-3.5" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
 
 /* ══════════════════════════════════════════════════════════════════════════════
    REMEDIATION

@@ -9,8 +9,9 @@ import { cn } from "@/lib/utils"
 // padding or have their own scroll context — they manage layout edge-to-edge.
 function isFullBleedRoute(pathname: string) {
   if (pathname === "/sara" || pathname.startsWith("/admin")) return true
-  // Incident detail mockups manage their own scroll and layout edge-to-edge
-  if (/^\/incidents\/[^/]+(\/[nv]\d+)?$/.test(pathname)) return true
+  // Incident / threat-intel / entity detail pages manage their own scroll and
+  // layout edge-to-edge so they can host sticky headers + tabs.
+  if (/^\/(incidents|threat-intel|entities)\/[^/]+(\/[nv]\d+)?$/.test(pathname)) return true
   return false
 }
 
