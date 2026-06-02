@@ -66,7 +66,7 @@ export function AdminRolesPage() {
       />
 
       {/* Two-pane: roles list + role detail */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
         {/* Roles list */}
         <aside className="rounded-xl border bg-card">
           <div className="space-y-3 border-b p-4">
@@ -86,7 +86,7 @@ export function AdminRolesPage() {
             </Button>
           </div>
 
-          <div className="max-h-[640px] space-y-1 overflow-y-auto p-2">
+          <div className="max-h-160 space-y-1 overflow-y-auto p-2">
             <RoleSection
               label="System"
               roles={systemRoles}
@@ -161,7 +161,7 @@ export function AdminRolesPage() {
 
           {/* Permission toolbar */}
           <div className="flex flex-wrap items-center gap-2">
-            <div className="relative w-[320px]">
+            <div className="relative w-80">
               <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search permissions…"

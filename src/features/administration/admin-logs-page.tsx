@@ -230,7 +230,7 @@ export function AdminLogsPage() {
 
       {/* Filter bar */}
       <div className="flex flex-wrap items-center gap-2">
-        <div className="relative w-[320px]">
+        <div className="relative w-80">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search by actor, action, target, or query…"

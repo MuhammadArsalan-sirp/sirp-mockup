@@ -12,12 +12,24 @@ import { EntityDetailPage } from "@/features/entities/detail/entity-detail-page"
 import { AutonomyPage } from "@/features/autonomy/autonomy-page"
 import { AdminLayout } from "@/features/administration/admin-layout"
 import { AdminOverviewPage } from "@/features/administration/admin-overview-page"
+import { AdminPosturePage } from "@/features/administration/admin-posture-page"
 import { AdminUsersPage } from "@/features/administration/admin-users-page"
 import { AdminGroupsPage } from "@/features/administration/admin-groups-page"
 import { AdminRolesPage } from "@/features/administration/admin-roles-page"
 import { AdminOrgPage } from "@/features/administration/admin-org-page"
 import { AdminLogsPage } from "@/features/administration/admin-logs-page"
-import { AdminPlaceholderPage } from "@/features/administration/admin-placeholder-page"
+import { AdminSsoPage } from "@/features/administration/admin-sso-page"
+import { AdminSessionsPage } from "@/features/administration/admin-sessions-page"
+import { AdminEmailPage } from "@/features/administration/admin-email-page"
+import { AdminTemplatesPage } from "@/features/administration/admin-templates-page"
+import { AdminLicensePage } from "@/features/administration/admin-license-page"
+import { AdminHealthPage } from "@/features/administration/admin-health-page"
+import { AdminBackupPage } from "@/features/administration/admin-backup-page"
+import { AdminDepartmentsPage } from "@/features/administration/admin-departments-page"
+import { AdminTenantsPage } from "@/features/administration/admin-tenants-page"
+import { AdminMasterDataPage } from "@/features/administration/admin-master-data-page"
+import { AdminIncidentSetupPage } from "@/features/administration/admin-incident-setup-page"
+import { AdminThreatIntelSetupPage } from "@/features/administration/admin-threat-intel-setup-page"
 import { LoginPage } from "@/features/auth/login-page"
 import { NotFoundPage } from "./not-found-page"
 
@@ -43,23 +55,24 @@ export const router = createBrowserRouter([
         element: <AdminLayout />,
         children: [
           { index: true, element: <AdminOverviewPage /> },
+          { path: "posture", element: <AdminPosturePage /> },
           { path: "users", element: <AdminUsersPage /> },
           { path: "groups", element: <AdminGroupsPage /> },
           { path: "roles", element: <AdminRolesPage /> },
           { path: "org", element: <AdminOrgPage /> },
           { path: "logs", element: <AdminLogsPage /> },
-          { path: "departments", element: <AdminPlaceholderPage /> },
-          { path: "tenants", element: <AdminPlaceholderPage /> },
-          { path: "incident-setup", element: <AdminPlaceholderPage /> },
-          { path: "threat-intel-setup", element: <AdminPlaceholderPage /> },
-          { path: "master-data", element: <AdminPlaceholderPage /> },
-          { path: "sso", element: <AdminPlaceholderPage /> },
-          { path: "sessions", element: <AdminPlaceholderPage /> },
-          { path: "email", element: <AdminPlaceholderPage /> },
-          { path: "templates", element: <AdminPlaceholderPage /> },
-          { path: "license", element: <AdminPlaceholderPage /> },
-          { path: "health", element: <AdminPlaceholderPage /> },
-          { path: "backup", element: <AdminPlaceholderPage /> },
+          { path: "sso", element: <AdminSsoPage /> },
+          { path: "sessions", element: <AdminSessionsPage /> },
+          { path: "email", element: <AdminEmailPage /> },
+          { path: "templates", element: <AdminTemplatesPage /> },
+          { path: "license", element: <AdminLicensePage /> },
+          { path: "health", element: <AdminHealthPage /> },
+          { path: "backup", element: <AdminBackupPage /> },
+          { path: "departments", element: <AdminDepartmentsPage /> },
+          { path: "tenants", element: <AdminTenantsPage /> },
+          { path: "master-data", element: <AdminMasterDataPage /> },
+          { path: "incident-setup", element: <AdminIncidentSetupPage /> },
+          { path: "threat-intel-setup", element: <AdminThreatIntelSetupPage /> },
         ],
       },
     ],

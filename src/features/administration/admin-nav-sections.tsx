@@ -1,22 +1,28 @@
 import {
-  Users,
-  Users2,
-  ShieldCheck,
-  Building,
-  Network,
-  Globe,
-  AlertTriangle,
-  Shield,
-  Database,
-  Lock,
-  Clock,
-  Mail,
-  FileText,
-  CreditCard,
   Activity,
+  AlertTriangle,
+  Building,
+  Building2,
+  ClipboardList,
+  CreditCard,
+  Database,
+  FileText,
+  Globe,
+  KeyRound,
+  Layers,
+  Lock,
+  Mail,
+  Network,
   RefreshCw,
+  Rss,
   ScrollText,
   Settings2,
+  Shield,
+  ShieldCheck,
+  Tag,
+  Timer,
+  Users,
+  Users2,
   type LucideIcon,
 } from "lucide-react"
 
@@ -25,6 +31,8 @@ export type AdminNavItemConfig = {
   label: string
   icon: LucideIcon
   meta?: string
+  /** Optional one-line description for hover / mobile nav */
+  hint?: string
 }
 
 export type AdminTabConfig = {
@@ -35,7 +43,7 @@ export type AdminTabConfig = {
   items: AdminNavItemConfig[]
 }
 
-/** Mirrors the 7 production admin tabs exactly. */
+/** 7 production-aligned tabs. Each tab pre-loads its first sub-page. */
 export const adminTabs: AdminTabConfig[] = [
   {
     id: "organizations",
@@ -43,9 +51,9 @@ export const adminTabs: AdminTabConfig[] = [
     icon: Building,
     defaultPath: "/admin/org",
     items: [
-      { to: "/admin/org", label: "Profile & Branding", icon: Building },
-      { to: "/admin/departments", label: "Departments", icon: Network },
-      { to: "/admin/tenants", label: "Tenants", icon: Globe, meta: "3" },
+      { to: "/admin/org",         label: "Profile & Branding", icon: Building2, hint: "Tenant identity, logo, locale" },
+      { to: "/admin/departments", label: "Departments",        icon: Network,   hint: "Hierarchy and reporting lines" },
+      { to: "/admin/tenants",     label: "Tenants",            icon: Globe,     meta: "3", hint: "Child tenants and residency" },
     ],
   },
   {
@@ -54,7 +62,7 @@ export const adminTabs: AdminTabConfig[] = [
     icon: Database,
     defaultPath: "/admin/master-data",
     items: [
-      { to: "/admin/master-data", label: "Master Data", icon: Database },
+      { to: "/admin/master-data", label: "Master data", icon: Layers, hint: "Asset types, owners, classifications" },
     ],
   },
   {
@@ -63,7 +71,7 @@ export const adminTabs: AdminTabConfig[] = [
     icon: AlertTriangle,
     defaultPath: "/admin/incident-setup",
     items: [
-      { to: "/admin/incident-setup", label: "Incident Setup", icon: AlertTriangle },
+      { to: "/admin/incident-setup", label: "Categories & SLAs", icon: Tag, hint: "Taxonomy, default severities, SLAs" },
     ],
   },
   {
@@ -72,33 +80,34 @@ export const adminTabs: AdminTabConfig[] = [
     icon: Shield,
     defaultPath: "/admin/threat-intel-setup",
     items: [
-      { to: "/admin/threat-intel-setup", label: "Configuration", icon: Shield },
+      { to: "/admin/threat-intel-setup", label: "Feeds & taxonomy", icon: Rss, hint: "TI feeds and entity taxonomy" },
     ],
   },
   {
     id: "access-control",
     label: "Access Control",
     icon: ShieldCheck,
-    defaultPath: "/admin/users",
+    defaultPath: "/admin/posture",
     items: [
-      { to: "/admin/users", label: "Users", icon: Users, meta: "142" },
-      { to: "/admin/groups", label: "Groups & Teams", icon: Users2, meta: "5" },
-      { to: "/admin/roles", label: "Roles & Permissions", icon: ShieldCheck, meta: "12" },
+      { to: "/admin/posture",  label: "Security posture",    icon: Shield,      hint: "Tenant security score" },
+      { to: "/admin/users",    label: "Users",               icon: Users,       meta: "142", hint: "Members and seats" },
+      { to: "/admin/groups",   label: "Groups & teams",      icon: Users2,      meta: "5",   hint: "Security and on-call rosters" },
+      { to: "/admin/roles",    label: "Roles & permissions", icon: ShieldCheck, meta: "12",  hint: "Bundle permissions into roles" },
+      { to: "/admin/sso",      label: "SSO & SAML",          icon: KeyRound,    hint: "Identity providers" },
+      { to: "/admin/sessions", label: "Sessions & policy",   icon: Timer,       hint: "Timeouts, lockout, IP allowlist" },
     ],
   },
   {
     id: "product-settings",
     label: "Product Settings",
     icon: Settings2,
-    defaultPath: "/admin/sso",
+    defaultPath: "/admin/license",
     items: [
-      { to: "/admin/sso", label: "SSO & SAML", icon: Lock },
-      { to: "/admin/sessions", label: "Session Policy", icon: Clock },
-      { to: "/admin/email", label: "Email", icon: Mail },
-      { to: "/admin/templates", label: "Notification Templates", icon: FileText },
-      { to: "/admin/license", label: "Licenses", icon: CreditCard },
-      { to: "/admin/health", label: "Server Health", icon: Activity },
-      { to: "/admin/backup", label: "Backup & Restore", icon: RefreshCw },
+      { to: "/admin/license",   label: "License & seats",        icon: CreditCard, hint: "Plan, renewal, invoices" },
+      { to: "/admin/email",     label: "Email server",           icon: Mail,       hint: "SMTP and deliverability" },
+      { to: "/admin/templates", label: "Notification templates", icon: FileText,   hint: "Email, SMS, webhook copy" },
+      { to: "/admin/health",    label: "Service health",         icon: Activity,   hint: "Subsystems and uptime" },
+      { to: "/admin/backup",    label: "Backup & restore",       icon: RefreshCw,  hint: "Snapshots and retention" },
     ],
   },
   {
@@ -107,19 +116,19 @@ export const adminTabs: AdminTabConfig[] = [
     icon: ScrollText,
     defaultPath: "/admin/logs",
     items: [
-      { to: "/admin/logs", label: "Activity Logs", icon: ScrollText },
+      { to: "/admin/logs", label: "Activity logs", icon: ClipboardList, hint: "Audit trail across the workspace" },
     ],
   },
 ]
 
-/** Flat list used by the mobile dropdown and Overview "Needs attention" links. */
+/** Flat list used by the mobile dropdown and overview links. */
 export function flattenAdminNavForSelect(): {
   value: string
   label: string
   section?: string
 }[] {
   const out: { value: string; label: string; section?: string }[] = [
-    { value: "/admin", label: "Overview", section: undefined },
+    { value: "/admin", label: "Overview" },
   ]
   for (const tab of adminTabs) {
     for (const item of tab.items) {
@@ -128,3 +137,29 @@ export function flattenAdminNavForSelect(): {
   }
   return out
 }
+
+/** Single source of truth for icon lookup on overview / search surfaces. */
+export const adminIconRegistry = {
+  Lock,
+  ShieldCheck,
+  KeyRound,
+  Timer,
+  Mail,
+  CreditCard,
+  Activity,
+  RefreshCw,
+  Tag,
+  Rss,
+  Database,
+  Layers,
+  Network,
+  Globe,
+  Building,
+  Building2,
+  Users,
+  Users2,
+  Shield,
+  ScrollText,
+  ClipboardList,
+  FileText,
+} as const

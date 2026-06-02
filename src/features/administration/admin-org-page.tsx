@@ -410,7 +410,7 @@ Confidential — do not forward.`}
               control={
                 <SelectInput
                   defaultValue="2y"
-                  className="w-[140px]"
+                  className="w-35"
                   options={[
                     { value: "2y", label: "2 years" },
                     { value: "3y", label: "3 years" },

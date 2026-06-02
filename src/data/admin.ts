@@ -660,3 +660,487 @@ export const systemHealth: SystemHealth[] = [
   { id: "queue", label: "Job queue", metric: "2,481", metricSub: "jobs · 4 stuck", status: "warn" },
   { id: "storage", label: "Storage", metric: "1.8 TB", metricSub: "/ 4 TB used", status: "ok" },
 ]
+
+// ─────────────────────────────────────────────────────────────────
+// Security posture
+// ─────────────────────────────────────────────────────────────────
+
+export type PostureSeverity = "high" | "medium" | "low" | "ok"
+export type PostureCategory = "authentication" | "session" | "data" | "audit" | "operations"
+
+export type PostureCheck = {
+  id: string
+  category: PostureCategory
+  label: string
+  description: string
+  status: PostureSeverity
+  /** Short numeric/text indicator e.g. "87%" or "9 days" */
+  metric?: string
+  /** Direct link into a remediation surface */
+  cta?: { label: string; href: string }
+}
+
+export const postureChecks: PostureCheck[] = [
+  { id: "p_mfa",      category: "authentication", label: "MFA enrolment",          description: "TOTP or WebAuthn enrolled by every active user.",                    status: "medium", metric: "87%",   cta: { label: "Open Users",     href: "/admin/users"    } },
+  { id: "p_sso",      category: "authentication", label: "Single sign-on",         description: "SAML or OIDC active. Just-in-time provisioning enabled.",            status: "ok",     metric: "SAML"                                                              },
+  { id: "p_sso_cert", category: "authentication", label: "SSO certificate",        description: "Rotate IdP signing certificate before expiry.",                      status: "high",   metric: "9 days",cta: { label: "Rotate now",     href: "/admin/sso"      } },
+  { id: "p_pwd",      category: "authentication", label: "Password policy",        description: "Min 12 chars, complexity, no last 5 reuse, 90-day rotation.",        status: "ok",     metric: "strong",cta: { label: "Review policy",  href: "/admin/sessions" } },
+  { id: "p_session",  category: "session",        label: "Idle session timeout",   description: "Sessions expire after 30 minutes of inactivity.",                   status: "ok",     metric: "30 min"                                                            },
+  { id: "p_lockout",  category: "session",        label: "Lockout threshold",      description: "Lock account after 5 failed sign-ins inside 10 minutes.",            status: "ok",     metric: "5 / 10m"                                                           },
+  { id: "p_iprange",  category: "session",        label: "IP allowlist",           description: "Admin actions limited to corporate CIDR ranges.",                    status: "medium", metric: "off",   cta: { label: "Configure",      href: "/admin/sessions" } },
+  { id: "p_retain",   category: "audit",          label: "Audit log retention",    description: "Audit events retained beyond regulator minimum (12 months).",         status: "ok",     metric: "24 mo"                                                             },
+  { id: "p_siem",     category: "audit",          label: "SIEM export",            description: "Audit log streamed to upstream SIEM in real time.",                  status: "low",    metric: "off",   cta: { label: "Enable export",  href: "/admin/logs"     } },
+  { id: "p_encrypt",  category: "data",           label: "Encryption at rest",     description: "Tenant volumes encrypted with KMS-managed CMK.",                     status: "ok",     metric: "AES-256"                                                           },
+  { id: "p_backup",   category: "data",           label: "Backup completion",      description: "Most recent scheduled backup completed inside SLA.",                  status: "ok",     metric: "12m ago",cta:{ label: "View backups",   href: "/admin/backup"   } },
+  { id: "p_residency",category: "data",           label: "KSA data residency",     description: "Customer data routed to in-region storage and inference.",           status: "ok",     metric: "KSA"                                                               },
+  { id: "p_health",   category: "operations",     label: "Service health",         description: "All critical subsystems reporting healthy in the last 5 minutes.",   status: "medium", metric: "1 warn",cta: { label: "Open health",    href: "/admin/health"   } },
+  { id: "p_invites",  category: "operations",     label: "Stale invites",          description: "Pending invites older than 7 days should be revoked or resent.",     status: "low",    metric: "8",     cta: { label: "Resolve",        href: "/admin/users"    } },
+  { id: "p_inactive", category: "operations",     label: "Dormant accounts",       description: "Users inactive ≥ 90 days reviewed and de-provisioned.",              status: "medium", metric: "7",     cta: { label: "Review",         href: "/admin/users"    } },
+]
+
+export type PostureScoreBand = "excellent" | "good" | "fair" | "needs-work"
+
+export function computePostureScore(checks: PostureCheck[] = postureChecks): {
+  score: number
+  band: PostureScoreBand
+  counts: Record<PostureSeverity, number>
+} {
+  const weight: Record<PostureSeverity, number> = { high: 0, medium: 0.5, low: 0.8, ok: 1 }
+  const counts: Record<PostureSeverity, number> = { high: 0, medium: 0, low: 0, ok: 0 }
+  let sum = 0
+  for (const c of checks) {
+    counts[c.status] += 1
+    sum += weight[c.status]
+  }
+  const score = Math.round((sum / checks.length) * 100)
+  const band: PostureScoreBand =
+    score >= 90 ? "excellent" : score >= 75 ? "good" : score >= 60 ? "fair" : "needs-work"
+  return { score, band, counts }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// SSO providers
+// ─────────────────────────────────────────────────────────────────
+
+export type SsoProvider = {
+  id: string
+  kind: "saml" | "oidc"
+  name: string
+  description: string
+  status: "active" | "draft" | "disabled"
+  domain: string
+  users: number
+  jit: boolean
+  certExpires?: string
+  /** Days until cert expires; negative = expired */
+  certDaysLeft?: number
+  acsUrl?: string
+  issuer?: string
+}
+
+export const ssoProviders: SsoProvider[] = [
+  {
+    id: "okta-prod",
+    kind: "saml",
+    name: "Okta · Production",
+    description: "Primary IdP for acme.com employees. JIT provisioning maps SOC groups.",
+    status: "active",
+    domain: "acme.com",
+    users: 138,
+    jit: true,
+    certExpires: "2026-05-30",
+    certDaysLeft: 9,
+    acsUrl: "https://app.sirp.io/sso/saml/acme/acs",
+    issuer: "https://acme.okta.com/exk1f2…",
+  },
+  {
+    id: "azure-eu",
+    kind: "oidc",
+    name: "Microsoft Entra · EU tenant",
+    description: "EMEA contractors. Restricted to read-only roles.",
+    status: "active",
+    domain: "acme-emea.com",
+    users: 22,
+    jit: false,
+    certExpires: "2027-02-14",
+    certDaysLeft: 269,
+    issuer: "https://login.microsoftonline.com/…",
+  },
+  {
+    id: "google-vendor",
+    kind: "oidc",
+    name: "Google Workspace · Vendors",
+    description: "External SOC vendor access. Scoped to specific cases.",
+    status: "draft",
+    domain: "partner-vendor.net",
+    users: 0,
+    jit: false,
+  },
+]
+
+// ─────────────────────────────────────────────────────────────────
+// Session / password policy
+// ─────────────────────────────────────────────────────────────────
+
+export const sessionPolicy = {
+  idleTimeoutMinutes: 30,
+  absoluteTimeoutHours: 12,
+  rememberMeDays: 7,
+  concurrentSessions: 3,
+  lockoutAttempts: 5,
+  lockoutWindowMinutes: 10,
+  lockoutDurationMinutes: 30,
+  passwordMinLength: 12,
+  passwordRequireComplexity: true,
+  passwordHistory: 5,
+  passwordExpiryDays: 90,
+  ipAllowlistEnabled: false,
+  ipAllowlist: ["10.0.0.0/8", "198.51.100.0/24"],
+  enforceMfaForAdmins: true,
+}
+
+// ─────────────────────────────────────────────────────────────────
+// License & seats
+// ─────────────────────────────────────────────────────────────────
+
+export type LicenseInvoice = {
+  id: string
+  number: string
+  date: string
+  amount: string
+  status: "paid" | "due" | "overdue"
+}
+
+export const licenseDetail = {
+  plan: "Enterprise",
+  status: "Active",
+  seats: { used: 142, total: 150, pending: 12 },
+  startDate: "2025-11-28",
+  renewalDate: "2026-11-28",
+  daysToRenewal: 213,
+  billingCycle: "Annual",
+  contactEmail: "billing@sirp.io",
+  features: [
+    { id: "sso",       label: "SSO (SAML & OIDC)",       included: true },
+    { id: "sara",      label: "Sara Co-Analyst · agents",included: true },
+    { id: "omniscan",  label: "OmniScan attack-planner", included: true },
+    { id: "omniflex",  label: "OmniFlex playbooks",      included: true },
+    { id: "ti-feeds",  label: "Premium TI feeds",        included: true },
+    { id: "siem",      label: "SIEM export",             included: true },
+    { id: "ksa",       label: "KSA data residency",      included: true },
+    { id: "managed",   label: "Managed services SLA",    included: false },
+  ],
+  invoices: [
+    { id: "inv-1", number: "INV-2025-118", date: "2025-11-28", amount: "$ 178,200", status: "paid"    },
+    { id: "inv-2", number: "INV-2024-094", date: "2024-11-28", amount: "$ 162,000", status: "paid"    },
+    { id: "inv-3", number: "INV-2023-071", date: "2023-11-28", amount: "$ 148,500", status: "paid"    },
+  ] as LicenseInvoice[],
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Health & subsystems
+// ─────────────────────────────────────────────────────────────────
+
+export type HealthSubsystem = {
+  id: string
+  group: "core" | "data" | "ingest" | "ai"
+  label: string
+  status: "ok" | "warn" | "err"
+  metric: string
+  detail: string
+  /** Optional sparkline (0–100 values) */
+  spark?: number[]
+}
+
+export const healthSubsystems: HealthSubsystem[] = [
+  { id: "api",        group: "core",   label: "API server",             status: "ok",   metric: "98ms",   detail: "p95 latency · last 5m",            spark: [22,26,30,28,32,29,33,30,28,35,32,30,28,29,33] },
+  { id: "web",        group: "core",   label: "Web app",                status: "ok",   metric: "1.2s",   detail: "TTI · global p75",                 spark: [55,58,52,57,60,54,52,50,52,55,53,49,51,52,54] },
+  { id: "auth",       group: "core",   label: "Authentication",         status: "ok",   metric: "100%",   detail: "Success rate · last hour",          spark: [99,99,100,99,100,100,99,100,100,100,99,100,100,100,99] },
+  { id: "db",         group: "data",   label: "Primary database",       status: "ok",   metric: "62%",    detail: "CPU · 41% disk",                    spark: [40,45,50,55,58,60,62,65,62,60,58,55,58,60,62] },
+  { id: "cache",      group: "data",   label: "Cache (Redis)",          status: "ok",   metric: "23%",    detail: "Memory · 0 evictions",              spark: [18,20,21,22,23,24,25,23,22,21,22,23,24,23,22] },
+  { id: "queue",      group: "ingest", label: "Job queue",              status: "warn", metric: "2,481",  detail: "queued · 4 stuck",                  spark: [400,800,1500,2000,2300,2400,2481,2400,2500,2600,2500,2400,2300,2200,2481] },
+  { id: "connectors", group: "ingest", label: "Connectors",             status: "ok",   metric: "27 / 27",detail: "active · 1.2M events/h",            spark: [70,72,75,78,80,82,85,88,85,82,80,82,85,87,86] },
+  { id: "siem",       group: "ingest", label: "SIEM export",            status: "ok",   metric: "lag 4s", detail: "Splunk · 4.8k events/min",          spark: [30,32,28,30,33,31,28,29,30,31,30,29,28,30,29] },
+  { id: "sara",       group: "ai",     label: "Sara LLM router",        status: "ok",   metric: "98%",    detail: "Success · 312 ms median",           spark: [88,90,92,94,95,96,98,97,98,96,95,97,98,99,98] },
+  { id: "omniscan",   group: "ai",     label: "OmniScan engine",        status: "ok",   metric: "44 / m", detail: "Scans · 0 timeouts",                spark: [30,35,40,42,44,45,44,42,40,38,40,42,44,43,44] },
+  { id: "omniflex",   group: "ai",     label: "OmniFlex executor",      status: "ok",   metric: "212 / h",detail: "Playbook runs · 0 failures",        spark: [180,190,200,205,210,212,210,208,205,210,212,215,212,210,212] },
+]
+
+export const healthIncidents = [
+  { id: "h1", time: "2026-04-25 02:14 UTC", title: "Connector queue back-pressure cleared", durationMin: 28, severity: "warn" as const },
+  { id: "h2", time: "2026-04-12 17:30 UTC", title: "Sara LLM router · provider degradation",  durationMin: 14, severity: "warn" as const },
+  { id: "h3", time: "2026-03-28 09:01 UTC", title: "Scheduled maintenance · platform upgrade",durationMin: 45, severity: "info" as const },
+]
+
+// ─────────────────────────────────────────────────────────────────
+// Backup & restore
+// ─────────────────────────────────────────────────────────────────
+
+export type BackupJob = {
+  id: string
+  startedAt: string
+  durationSec: number
+  size: string
+  scope: "full" | "incremental"
+  status: "success" | "running" | "failed"
+  artifactsCount: number
+  /** Comma-separated regions where backup was replicated */
+  regions: string
+}
+
+export const backupConfig = {
+  schedule: "Every 4 hours",
+  nextRunIn: "48 min",
+  retentionDays: 90,
+  encryption: "AES-256 (CMK)",
+  destination: "S3 · ksa-central-1",
+  crossRegionReplication: true,
+  lastRestoreTest: "2026-03-12",
+}
+
+export const backupJobs: BackupJob[] = [
+  { id: "b_001", startedAt: "2026-04-29 14:12", durationSec: 47,  size: "2.4 GB", scope: "incremental", status: "success", artifactsCount: 142, regions: "ksa-central-1, ksa-west-1" },
+  { id: "b_002", startedAt: "2026-04-29 10:12", durationSec: 52,  size: "2.6 GB", scope: "incremental", status: "success", artifactsCount: 138, regions: "ksa-central-1, ksa-west-1" },
+  { id: "b_003", startedAt: "2026-04-29 06:12", durationSec: 49,  size: "2.5 GB", scope: "incremental", status: "success", artifactsCount: 140, regions: "ksa-central-1, ksa-west-1" },
+  { id: "b_004", startedAt: "2026-04-29 02:12", durationSec: 318, size: "48.2 GB",scope: "full",        status: "success", artifactsCount: 4218,regions: "ksa-central-1, ksa-west-1" },
+  { id: "b_005", startedAt: "2026-04-28 22:12", durationSec: 51,  size: "2.7 GB", scope: "incremental", status: "success", artifactsCount: 144, regions: "ksa-central-1, ksa-west-1" },
+  { id: "b_006", startedAt: "2026-04-28 18:12", durationSec: 0,   size: "—",      scope: "incremental", status: "failed",  artifactsCount: 0,   regions: "—" },
+  { id: "b_007", startedAt: "2026-04-28 14:12", durationSec: 50,  size: "2.6 GB", scope: "incremental", status: "success", artifactsCount: 139, regions: "ksa-central-1, ksa-west-1" },
+]
+
+// ─────────────────────────────────────────────────────────────────
+// Email / SMTP
+// ─────────────────────────────────────────────────────────────────
+
+export const emailConfig = {
+  status: "verified" as const,
+  host: "smtp.acme-mail.internal",
+  port: 587,
+  encryption: "STARTTLS",
+  username: "sirp-noreply",
+  fromAddress: "noreply@sirp.acme.com",
+  fromName: "SIRP · Acme Corp",
+  replyTo: "soc@acme.com",
+  dailyLimit: 50000,
+  sentToday: 8420,
+  deliveryRate: 99.4,
+  bounceRate: 0.3,
+  lastTestSentAt: "2026-04-29 09:14",
+  dmarcAligned: true,
+  spfAligned: true,
+  dkimSigned: true,
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Notification templates
+// ─────────────────────────────────────────────────────────────────
+
+export type NotificationTemplate = {
+  id: string
+  name: string
+  category: "incident" | "access" | "system" | "digest"
+  trigger: string
+  channels: ("email" | "sms" | "webhook" | "teams" | "slack")[]
+  lastEditedBy: string
+  lastEditedAt: string
+  variables: number
+  enabled: boolean
+}
+
+export const notificationTemplates: NotificationTemplate[] = [
+  { id: "t_inc_assigned",  name: "Incident assigned",             category: "incident", trigger: "incident.assigned",   channels: ["email","teams"],          lastEditedBy: "Sara Patel",  lastEditedAt: "2 days ago",   variables: 11, enabled: true  },
+  { id: "t_sla_warning",   name: "SLA warning · 30 min",          category: "incident", trigger: "sla.warn.30m",        channels: ["email","sms","teams"],    lastEditedBy: "Ahmed Khan",  lastEditedAt: "1 week ago",   variables: 9,  enabled: true  },
+  { id: "t_sla_breach",    name: "SLA breach",                    category: "incident", trigger: "sla.breach",          channels: ["email","sms","slack"],    lastEditedBy: "Ahmed Khan",  lastEditedAt: "1 week ago",   variables: 9,  enabled: true  },
+  { id: "t_user_invite",   name: "User invitation",               category: "access",   trigger: "user.invited",        channels: ["email"],                  lastEditedBy: "Maria Chen",  lastEditedAt: "3 weeks ago",  variables: 6,  enabled: true  },
+  { id: "t_pwd_reset",     name: "Password reset",                category: "access",   trigger: "user.password.reset", channels: ["email"],                  lastEditedBy: "System",      lastEditedAt: "—",            variables: 4,  enabled: true  },
+  { id: "t_account_lock",  name: "Account locked",                category: "access",   trigger: "user.locked",         channels: ["email"],                  lastEditedBy: "System",      lastEditedAt: "—",            variables: 5,  enabled: true  },
+  { id: "t_health_alert",  name: "Subsystem unhealthy",           category: "system",   trigger: "health.degraded",     channels: ["email","slack","webhook"],lastEditedBy: "Ahmed Khan",  lastEditedAt: "1 month ago",  variables: 7,  enabled: true  },
+  { id: "t_backup_fail",   name: "Backup failed",                 category: "system",   trigger: "backup.failed",       channels: ["email","sms"],            lastEditedBy: "Ahmed Khan",  lastEditedAt: "1 month ago",  variables: 6,  enabled: true  },
+  { id: "t_exec_digest",   name: "Executive weekly digest",       category: "digest",   trigger: "digest.weekly",       channels: ["email"],                  lastEditedBy: "Sara Patel",  lastEditedAt: "2 weeks ago",  variables: 14, enabled: true  },
+  { id: "t_oncall_digest", name: "On-call shift summary",         category: "digest",   trigger: "digest.shift.end",    channels: ["email","slack"],          lastEditedBy: "Lina Okafor", lastEditedAt: "5 days ago",   variables: 12, enabled: false },
+]
+
+// ─────────────────────────────────────────────────────────────────
+// Tenants
+// ─────────────────────────────────────────────────────────────────
+
+export type Tenant = {
+  id: string
+  name: string
+  region: string
+  plan: "Enterprise" | "Premium" | "Standard"
+  status: "active" | "suspended" | "trial"
+  users: number
+  incidents30d: number
+  storageGb: number
+  ksaResident: boolean
+  createdAt: string
+  primaryContact: string
+}
+
+export const tenants: Tenant[] = [
+  { id: "t_acme_global",  name: "Acme Corp · Global",      region: "ksa-central-1", plan: "Enterprise", status: "active",    users: 142, incidents30d: 1284, storageGb: 1842, ksaResident: true,  createdAt: "2023-01-04", primaryContact: "ahmed@sirp.io"          },
+  { id: "t_acme_emea",    name: "Acme EMEA · Subsidiary",  region: "eu-west-3",      plan: "Enterprise", status: "active",    users: 38,  incidents30d: 412,  storageGb: 412,  ksaResident: false, createdAt: "2024-03-18", primaryContact: "ops.eu@acme.com"        },
+  { id: "t_acme_govt",    name: "Acme Government Cloud",   region: "ksa-central-1", plan: "Premium",    status: "trial",     users: 8,   incidents30d: 21,   storageGb: 38,   ksaResident: true,  createdAt: "2026-04-12", primaryContact: "govt-pilot@acme.gov.sa" },
+]
+
+// ─────────────────────────────────────────────────────────────────
+// Departments
+// ─────────────────────────────────────────────────────────────────
+
+export type Department = {
+  id: string
+  name: string
+  parentId?: string
+  manager: string
+  members: number
+  defaultGroup?: string
+}
+
+export const departments: Department[] = [
+  { id: "d_root",       name: "Acme Corp",                  manager: "Ahmed Khan",     members: 142                                              },
+  { id: "d_tech",       name: "Technology",      parentId: "d_root",    manager: "Sara Patel",     members: 76                                  },
+  { id: "d_sec",        name: "Security",        parentId: "d_tech",    manager: "Sara Patel",     members: 41, defaultGroup: "SOC Tier 2"      },
+  { id: "d_soc_t1",     name: "SOC Tier 1",      parentId: "d_sec",     manager: "Maria Chen",     members: 18, defaultGroup: "SOC Tier 1"      },
+  { id: "d_soc_t2",     name: "SOC Tier 2",      parentId: "d_sec",     manager: "Maria Chen",     members: 12, defaultGroup: "SOC Tier 2"      },
+  { id: "d_ir",         name: "Incident Response", parentId: "d_sec",   manager: "Lina Okafor",    members: 11, defaultGroup: "Incident Response"},
+  { id: "d_eng",        name: "Engineering",     parentId: "d_tech",    manager: "Jonas Dietrich", members: 35                                  },
+  { id: "d_ops",        name: "IT Operations",   parentId: "d_root",    manager: "Ahmed Khan",     members: 24                                  },
+  { id: "d_gov",        name: "Governance",      parentId: "d_root",    manager: "Theo Nakamura",  members: 14                                  },
+  { id: "d_audit",      name: "Internal Audit",  parentId: "d_gov",     manager: "Theo Nakamura",  members: 6                                   },
+  { id: "d_compliance", name: "Compliance",      parentId: "d_gov",     manager: "Theo Nakamura",  members: 8                                   },
+  { id: "d_corp",       name: "Corporate",       parentId: "d_root",    manager: "Ahmed Khan",     members: 28                                  },
+]
+
+// ─────────────────────────────────────────────────────────────────
+// Master data
+// ─────────────────────────────────────────────────────────────────
+
+export type MasterDataList = {
+  id: string
+  group: "Assets" | "Classification" | "People" | "Geography"
+  name: string
+  count: number
+  managed: "system" | "custom"
+  updatedAt: string
+  example: string[]
+}
+
+export const masterDataLists: MasterDataList[] = [
+  { id: "md_asset_types", group: "Assets",         name: "Asset types",            count: 18, managed: "system", updatedAt: "—",          example: ["Workstation","Server","Mobile","IoT","Cloud workload"] },
+  { id: "md_asset_owner", group: "Assets",         name: "Asset owners",           count: 142, managed: "custom",updatedAt: "yesterday",  example: ["IT Ops","Security","Application Dev","Finance"]         },
+  { id: "md_criticality", group: "Classification", name: "Criticality levels",     count: 5,  managed: "system", updatedAt: "—",          example: ["Critical","High","Elevated","Medium","Low"]              },
+  { id: "md_data_class",  group: "Classification", name: "Data classifications",   count: 4,  managed: "custom", updatedAt: "2 weeks ago",example: ["Restricted","Confidential","Internal","Public"]          },
+  { id: "md_industries",  group: "Classification", name: "Industries",             count: 21, managed: "system", updatedAt: "—",          example: ["Banking","Healthcare","Telecom","Government","Energy"]    },
+  { id: "md_business",    group: "People",         name: "Business units",         count: 9,  managed: "custom", updatedAt: "3 days ago", example: ["Retail","Wholesale","Operations","Engineering","HR"]      },
+  { id: "md_oncall",      group: "People",         name: "On-call roles",          count: 6,  managed: "custom", updatedAt: "1 week ago", example: ["L1","L2","L3","IR Lead","Comms","Exec"]                  },
+  { id: "md_countries",   group: "Geography",      name: "Countries",              count: 196,managed: "system", updatedAt: "—",          example: ["SAU","ARE","BHR","KWT","OMN"]                            },
+  { id: "md_sites",       group: "Geography",      name: "Sites & datacentres",    count: 14, managed: "custom", updatedAt: "1 month ago",example: ["Riyadh DC1","Riyadh DC2","Jeddah DC","Dubai DC","HQ HQ"]  },
+]
+
+// ─────────────────────────────────────────────────────────────────
+// Incident setup (categories, SLAs, custom fields, states)
+// ─────────────────────────────────────────────────────────────────
+
+export type IncidentCategoryRow = {
+  id: string
+  name: string
+  parent?: string
+  defaultSeverity: "Sev1" | "Sev2" | "Sev3" | "Sev4" | "Sev5"
+  /** SLA in minutes to acknowledge / resolve */
+  sla: { ack: number; resolve: number }
+  /** Mapped playbook id */
+  playbook?: string
+  enabled: boolean
+}
+
+export const incidentCategories: IncidentCategoryRow[] = [
+  { id: "c_malware",      name: "Malware",                                       defaultSeverity: "Sev2", sla: { ack: 15, resolve: 240  }, playbook: "PB-Malware-Triage",       enabled: true },
+  { id: "c_ransomware",   name: "Ransomware",        parent: "c_malware",        defaultSeverity: "Sev1", sla: { ack: 5,  resolve: 60   }, playbook: "PB-Ransomware-Isolate",   enabled: true },
+  { id: "c_phishing",     name: "Phishing",                                      defaultSeverity: "Sev3", sla: { ack: 30, resolve: 480  }, playbook: "PB-Phish-Triage",         enabled: true },
+  { id: "c_phish_bec",    name: "BEC · Wire fraud",   parent: "c_phishing",      defaultSeverity: "Sev1", sla: { ack: 10, resolve: 120  }, playbook: "PB-BEC-Response",         enabled: true },
+  { id: "c_insider",      name: "Insider threat",                                defaultSeverity: "Sev2", sla: { ack: 30, resolve: 1440 }, playbook: "PB-Insider-Review",       enabled: true },
+  { id: "c_data_leak",    name: "Data leak",                                     defaultSeverity: "Sev2", sla: { ack: 15, resolve: 360  }, playbook: "PB-DLP-Containment",      enabled: true },
+  { id: "c_unauth_access",name: "Unauthorised access",                           defaultSeverity: "Sev2", sla: { ack: 15, resolve: 240  }, playbook: "PB-Account-Compromise",   enabled: true },
+  { id: "c_dos",          name: "Denial of service",                             defaultSeverity: "Sev2", sla: { ack: 15, resolve: 240  }, playbook: "PB-DoS-Mitigate",         enabled: true },
+  { id: "c_misconfig",    name: "Misconfiguration",                              defaultSeverity: "Sev4", sla: { ack: 60, resolve: 1440 },                                       enabled: true },
+  { id: "c_policy",       name: "Policy violation",                              defaultSeverity: "Sev4", sla: { ack: 60, resolve: 2880 },                                       enabled: false},
+]
+
+export type IncidentState = {
+  id: string
+  label: string
+  kind: "open" | "in-progress" | "waiting" | "closed"
+  slaActive: boolean
+}
+
+export const incidentStates: IncidentState[] = [
+  { id: "s_new",       label: "New",           kind: "open",        slaActive: true  },
+  { id: "s_triage",    label: "Triage",        kind: "in-progress", slaActive: true  },
+  { id: "s_investigate", label: "Investigating", kind: "in-progress", slaActive: true  },
+  { id: "s_containment",label: "Containment",  kind: "in-progress", slaActive: true  },
+  { id: "s_pending",   label: "Pending user",  kind: "waiting",     slaActive: false },
+  { id: "s_resolved",  label: "Resolved",      kind: "closed",      slaActive: false },
+  { id: "s_closed",    label: "Closed",        kind: "closed",      slaActive: false },
+]
+
+export type IncidentCustomField = {
+  id: string
+  label: string
+  type: "text" | "select" | "multi-select" | "user" | "date" | "boolean" | "number"
+  required: boolean
+  scope: string
+}
+
+export const incidentCustomFields: IncidentCustomField[] = [
+  { id: "f_attack_vector",  label: "Attack vector",        type: "select",       required: true,  scope: "All incidents" },
+  { id: "f_mitre",          label: "MITRE technique",      type: "multi-select", required: false, scope: "All incidents" },
+  { id: "f_kill_chain",     label: "Kill-chain stage",     type: "select",       required: false, scope: "All incidents" },
+  { id: "f_business_unit",  label: "Business unit",        type: "select",       required: true,  scope: "All incidents" },
+  { id: "f_data_class",     label: "Data classification",  type: "select",       required: false, scope: "Data leak"     },
+  { id: "f_regulator",      label: "Regulator notified",   type: "boolean",      required: false, scope: "Data leak, BEC"},
+  { id: "f_root_cause",     label: "Root cause",           type: "text",         required: false, scope: "Resolved only" },
+]
+
+// ─────────────────────────────────────────────────────────────────
+// Threat-intel setup
+// ─────────────────────────────────────────────────────────────────
+
+export type TiFeed = {
+  id: string
+  name: string
+  vendor: string
+  protocol: "TAXII 2.1" | "STIX 2.1" | "MISP" | "OpenCTI" | "HTTP JSON"
+  status: "active" | "error" | "paused"
+  pollInterval: string
+  lastSync: string
+  iocs30d: number
+  confidence: number
+}
+
+export const tiFeeds: TiFeed[] = [
+  { id: "f_mandiant",     name: "Mandiant Advantage",          vendor: "Mandiant",        protocol: "TAXII 2.1", status: "active", pollInterval: "15 min", lastSync: "3 min ago",  iocs30d: 18_420, confidence: 88 },
+  { id: "f_intel471",     name: "Intel 471 · Credentials",     vendor: "Intel 471",       protocol: "STIX 2.1",  status: "active", pollInterval: "1 h",    lastSync: "32 min ago", iocs30d: 4_201,  confidence: 92 },
+  { id: "f_recorded",     name: "Recorded Future · IOC",       vendor: "Recorded Future", protocol: "HTTP JSON", status: "active", pollInterval: "30 min", lastSync: "12 min ago", iocs30d: 22_811, confidence: 84 },
+  { id: "f_misp_internal",name: "Acme MISP (internal)",        vendor: "MISP",            protocol: "MISP",      status: "active", pollInterval: "5 min",  lastSync: "1 min ago",  iocs30d: 1_842,  confidence: 78 },
+  { id: "f_otx",          name: "AlienVault OTX",              vendor: "AT&T",            protocol: "STIX 2.1",  status: "active", pollInterval: "1 h",    lastSync: "44 min ago", iocs30d: 9_204,  confidence: 65 },
+  { id: "f_ksacert",      name: "KSA CERT advisories",         vendor: "KSA-CERT",        protocol: "HTTP JSON", status: "active", pollInterval: "Manual", lastSync: "yesterday",  iocs30d: 38,     confidence: 95 },
+  { id: "f_cisa",         name: "CISA KEV catalogue",          vendor: "CISA",            protocol: "HTTP JSON", status: "paused", pollInterval: "Daily",  lastSync: "5 days ago", iocs30d: 412,    confidence: 90 },
+  { id: "f_abuseipdb",    name: "AbuseIPDB enrichment",        vendor: "AbuseIPDB",       protocol: "HTTP JSON", status: "error",  pollInterval: "5 min",  lastSync: "21 min ago", iocs30d: 0,      confidence: 70 },
+]
+
+export type TiTaxonomy = {
+  id: string
+  label: string
+  description: string
+  count: number
+}
+
+export const tiTaxonomies: TiTaxonomy[] = [
+  { id: "tx_actor", label: "Threat actors",    description: "Named adversaries · profiles, aliases, motivations.",          count: 142 },
+  { id: "tx_camp",  label: "Campaigns",        description: "Linked operations connecting actors, TTPs and targets.",       count: 87  },
+  { id: "tx_mware", label: "Malware families", description: "Curated families with hashes, capabilities, related actors.",  count: 318 },
+  { id: "tx_ttp",   label: "TTPs (MITRE)",     description: "Tactics, techniques and sub-techniques observed.",             count: 612 },
+  { id: "tx_vuln",  label: "Vulnerabilities",  description: "Tracked CVEs with exploitation status and patches.",            count: 1284},
+]
+
