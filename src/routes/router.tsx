@@ -10,6 +10,7 @@ import { ThreatIntelDetailPage } from "@/features/threat-intel/detail/threat-int
 import { EntitiesPage } from "@/features/entities/entities-page"
 import { EntityDetailPage } from "@/features/entities/detail/entity-detail-page"
 import { AutonomyPage } from "@/features/autonomy/autonomy-page"
+import { DesignSystemPage } from "@/features/design-system/design-system-page"
 import { AdminLayout } from "@/features/administration/admin-layout"
 import { AdminOverviewPage } from "@/features/administration/admin-overview-page"
 import { AdminPosturePage } from "@/features/administration/admin-posture-page"
@@ -50,6 +51,7 @@ export const router = createBrowserRouter([
       { path: "entities/:id", element: <EntityDetailPage /> },
       { path: "autonomy", element: <AutonomyPage /> },
       { path: "autonomy/:tab", element: <AutonomyPage /> },
+      { path: "design-system", element: <DesignSystemPage /> },
       {
         path: "admin",
         element: <AdminLayout />,
