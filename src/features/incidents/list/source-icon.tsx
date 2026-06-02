@@ -1,32 +1,104 @@
 import { Bot, Eye } from "lucide-react"
+import { siSplunk } from "simple-icons"
 
 /**
  * Brand identifiers for incident sources.
- * - Real security vendors (CrowdStrike, Splunk, Sentinel, etc.) get a tinted
- *   monogram badge in the vendor's brand colour. Most security vendors aren't
- *   in `simple-icons` due to trademark policy, so we approximate.
- * - Internal SIRP services (OmniSense, Triage Agent) get Lucide icons in
- *   our SIRPurple brand.
+ *
+ * Most security vendors aren't in simple-icons (trademark policy), so we
+ * approximate with distinctive marks per brand:
+ *   - OmniSense / Triage Agent: Lucide icons in SIRPurple
+ *   - Microsoft Sentinel: the 4-colour Microsoft square (well-known geometry)
+ *   - AWS GuardDuty: lowercase "aws" wordmark on AWS navy
+ *   - Splunk: actual Splunk path from simple-icons
+ *   - CrowdStrike / Proofpoint: polished monograms in brand colour
  */
 
-type SourceMeta =
-  | { kind: "monogram"; initial: string; bg: string }
-  | { kind: "icon"; icon: typeof Eye; bg: string }
+type Brand =
+  | { kind: "lucide";    icon: typeof Eye }
+  | { kind: "splunk" }
+  | { kind: "microsoft" }
+  | { kind: "aws" }
+  | { kind: "monogram";  letters: string; weight?: 700 | 800 | 900 }
+
+type SourceMeta = { brand: Brand; bg: string }
 
 const sourceRegistry: Record<string, SourceMeta> = {
-  OmniSense: { kind: "icon", icon: Eye, bg: "#8E2DFF" },
-  CrowdStrike: { kind: "monogram", initial: "C", bg: "#FC0000" },
-  Splunk: { kind: "monogram", initial: "S", bg: "#65A637" },
-  Sentinel: { kind: "monogram", initial: "S", bg: "#0078D4" },
-  Proofpoint: { kind: "monogram", initial: "P", bg: "#0072CE" },
-  "AWS GuardDuty": { kind: "monogram", initial: "G", bg: "#FF9900" },
-  "Triage Agent": { kind: "icon", icon: Bot, bg: "#A457FF" },
+  OmniSense:       { brand: { kind: "lucide", icon: Eye }, bg: "#8E2DFF" },
+  "Triage Agent":  { brand: { kind: "lucide", icon: Bot }, bg: "#A457FF" },
+  CrowdStrike:     { brand: { kind: "monogram", letters: "CS", weight: 800 }, bg: "#EE2629" },
+  Splunk:          { brand: { kind: "splunk" }, bg: "#000000" },
+  Sentinel:        { brand: { kind: "microsoft" }, bg: "#FFFFFF" },
+  Proofpoint:      { brand: { kind: "monogram", letters: "P",  weight: 800 }, bg: "#0072CE" },
+  "AWS GuardDuty": { brand: { kind: "aws" }, bg: "#232F3E" },
 }
 
 const fallback: SourceMeta = {
-  kind: "monogram",
-  initial: "?",
+  brand: { kind: "monogram", letters: "?", weight: 700 },
   bg: "var(--muted)",
+}
+
+function renderMark(brand: Brand, size: number) {
+  const inner = Math.round(size * 0.7)
+  switch (brand.kind) {
+    case "lucide": {
+      const Icon = brand.icon
+      return <Icon style={{ width: inner, height: inner, color: "white" }} />
+    }
+    case "monogram":
+      return (
+        <span
+          style={{
+            color: "white",
+            fontWeight: brand.weight ?? 700,
+            fontSize: Math.round(size * (brand.letters.length === 1 ? 0.62 : 0.46)),
+            letterSpacing: brand.letters.length > 1 ? "-0.05em" : "normal",
+            lineHeight: 1,
+          }}
+        >
+          {brand.letters}
+        </span>
+      )
+    case "splunk":
+      return (
+        <svg
+          viewBox="0 0 24 24"
+          width={inner}
+          height={inner}
+          xmlns="http://www.w3.org/2000/svg"
+          fill="#65A637"
+          aria-hidden
+        >
+          <path d={siSplunk.path} />
+        </svg>
+      )
+    case "microsoft": {
+      // Microsoft 4-square logo on white background.
+      const s = Math.round(size * 0.62)
+      const half = (s - 2) / 2
+      return (
+        <svg width={s} height={s} viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+          <rect x="0"  y="0"  width={half} height={half} fill="#F25022" />
+          <rect x={half + 1} y="0"  width={half} height={half} fill="#7FBA00" />
+          <rect x="0"  y={half + 1} width={half} height={half} fill="#00A4EF" />
+          <rect x={half + 1} y={half + 1} width={half} height={half} fill="#FFB900" />
+        </svg>
+      )
+    }
+    case "aws":
+      return (
+        <span
+          style={{
+            color: "#FF9900",
+            fontWeight: 900,
+            fontSize: Math.round(size * 0.42),
+            letterSpacing: "-0.04em",
+            lineHeight: 1,
+          }}
+        >
+          aws
+        </span>
+      )
+  }
 }
 
 type Props = {
@@ -42,22 +114,15 @@ export function SourceIcon({ source, iconOnly = false, size = 24 }: Props) {
 
   const badge = (
     <span
-      className="grid shrink-0 place-items-center rounded-md font-semibold text-white"
+      className="grid shrink-0 place-items-center rounded-lg"
       style={{
         background: meta.bg,
-        width: size,
+        width: Math.round(size * 1.5),
         height: size,
-        fontSize: Math.round(size * 0.5),
       }}
       aria-hidden
     >
-      {meta.kind === "monogram" ? (
-        meta.initial
-      ) : (
-        <meta.icon
-          style={{ width: Math.round(size * 0.55), height: Math.round(size * 0.55) }}
-        />
-      )}
+      {renderMark(meta.brand, size)}
     </span>
   )
 

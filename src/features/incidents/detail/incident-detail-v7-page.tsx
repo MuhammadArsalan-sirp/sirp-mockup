@@ -11,16 +11,15 @@ import {
   Map as MapIcon, MessageSquare, MoreHorizontal,
   PanelRightClose, PanelRightOpen,
   Play, ScrollText, Send, Shield, Target, Timer, UserRoundCog,
-  Zap,
 } from "lucide-react"
 import { Link, useParams } from "react-router"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -128,7 +127,7 @@ export function IncidentDetailV7Page() {
       <header className="shrink-0 border-b bg-card shadow-sm">
         <div className="h-[3px] w-full" style={{ background: `color-mix(in srgb, ${sevColor} 55%, transparent)` }} />
 
-        {/* Row 1 */}
+        {/* Single-row header with inline pills + stage popover */}
         <div className="flex h-12 items-center gap-3 px-5">
           <Button variant="ghost" size="icon" className="size-7 shrink-0 text-muted-foreground" asChild>
             <Link to="/incidents"><ArrowLeft className="size-4" /></Link>
@@ -136,17 +135,105 @@ export function IncidentDetailV7Page() {
 
           <Badge variant="outline" className="shrink-0 font-mono text-[10px]">{incident.id}</Badge>
 
-          <span className="size-2 shrink-0 rounded-full" style={{ background: `color-mix(in srgb, ${sevColor} 80%, transparent)` }} />
-
           <h1 className="min-w-0 flex-1 truncate text-sm font-semibold">{incident.title}</h1>
+
+          {/* Inline metadata pills */}
+          <div className="flex shrink-0 items-center gap-1.5">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="cursor-default"><SeverityBadge value={incident.severity} /></span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Severity</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="cursor-default"><StatusBadge value={incident.status} /></span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Status</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge variant="outline" className="cursor-default font-mono text-xs font-bold">{incident.priority}</Badge>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Priority — P1 highest, P4 lowest</TooltipContent>
+            </Tooltip>
+          </div>
+
+          {/* Stage popover */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border/60 bg-muted/40 px-2.5 py-1 text-xs transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">Stage</span>
+                <span className="font-semibold">{incidentStateLabel[incident.state] ?? incident.state}</span>
+                <ChevronDown className="size-3 opacity-60" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-80 p-0">
+              <div className="flex items-center justify-between border-b px-4 py-2.5">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Workflow Stage</span>
+                <span className="font-mono text-[10px] text-muted-foreground/60">{Math.min(stageIdx + 1, STAGES.length)} of {STAGES.length}</span>
+              </div>
+              <div className="space-y-1.5 px-4 py-3">
+                {STAGES.map((stage, i) => {
+                  const done    = i < stageIdx
+                  const current = i === stageIdx
+                  return (
+                    <div key={stage.key} className="flex items-center gap-3">
+                      <div className={cn(
+                        "grid size-6 shrink-0 place-items-center rounded-full border-2 font-mono text-[10px] font-bold",
+                        done                  && "border-primary bg-primary/10 text-primary",
+                        current               && "border-primary bg-primary text-primary-foreground",
+                        !done && !current     && "border-border/60 bg-muted/30 text-muted-foreground/50",
+                      )}>
+                        {done ? <Check className="size-3" /> : i + 1}
+                      </div>
+                      <span className={cn(
+                        "flex-1 text-sm",
+                        current             && "font-semibold",
+                        !done && !current   && "text-muted-foreground/60",
+                      )}>
+                        {stage.label}
+                      </span>
+                      {current && (
+                        <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-primary">
+                          Current
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+              <div className="flex items-center justify-end gap-2 border-t bg-muted/15 px-4 py-2">
+                <Button size="sm" variant="ghost" className="h-7 px-2 text-[11px]">Edit</Button>
+                <Button size="sm" className="h-7 gap-1.5 px-2.5 text-[11px]">Advance<ChevronRight className="size-3" /></Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* SLA — only when breach / warn */}
+          {(incident.sla.tone === "breach" || incident.sla.tone === "warn") && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className={cn(
+                  "flex shrink-0 items-center gap-1 rounded-md border px-2 py-1 text-xs font-semibold",
+                  incident.sla.tone === "breach"
+                    ? "border-destructive/25 bg-destructive/10 text-destructive"
+                    : "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-400",
+                )}>
+                  <Timer className="size-3 shrink-0" />{incident.sla.label}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">SLA</TooltipContent>
+            </Tooltip>
+          )}
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="shrink-0 cursor-default opacity-70 hover:opacity-100 transition-opacity">
-                <SourceIcon source={incident.source.label} size={18} />
+              <div className="shrink-0 cursor-default">
+                <SourceIcon source={incident.source.label} size={30} iconOnly />
               </div>
             </TooltipTrigger>
-            <TooltipContent side="bottom">{incident.source.label}</TooltipContent>
+            <TooltipContent side="bottom">Source: {incident.source.label}</TooltipContent>
           </Tooltip>
 
           <Separator orientation="vertical" className="h-5" />
@@ -167,95 +254,6 @@ export function IncidentDetailV7Page() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
-        </div>
-
-        {/* Row 2 — metadata + stage pipeline */}
-        <div className="flex h-11 shrink-0 items-center border-t">
-
-          {/* ── Metadata strip ── */}
-          <div className="flex h-full shrink-0 items-center gap-2.5 border-r px-4">
-            <SeverityBadge value={incident.severity} />
-            <StatusBadge value={incident.status} />
-            <Badge variant="outline" className="font-mono text-xs font-bold">{incident.priority}</Badge>
-
-            {incident.assignee && (
-              <>
-                <div className="h-3.5 w-px shrink-0 bg-border/60" />
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex cursor-default items-center gap-1.5">
-                      <Avatar className="size-5 shrink-0">
-                        <AvatarFallback className={cn("text-[8px] font-bold text-white", incident.assignee.gradient)}>
-                          {incident.assignee.initials}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-xs text-muted-foreground">{incident.assignee.name}</span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>Lead analyst</TooltipContent>
-                </Tooltip>
-              </>
-            )}
-
-            <div className="h-3.5 w-px shrink-0 bg-border/60" />
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className={cn(
-                  "flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold",
-                  incident.sla.breached
-                    ? "bg-destructive/10 text-destructive"
-                    : "bg-muted/60 text-muted-foreground"
-                )}>
-                  <Timer className="size-3 shrink-0" />{incident.sla.label}
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">SLA remaining</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className={cn(
-                  "flex items-center gap-1 rounded-md px-2 py-1 text-xs font-bold tabular-nums",
-                  incident.s3Score >= 70
-                    ? "bg-destructive/10 text-destructive"
-                    : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                )}>
-                  <Zap className="size-3 shrink-0" />S3&nbsp;{incident.s3Score}
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">Severity · Scope · Speed</TooltipContent>
-            </Tooltip>
-          </div>
-
-          {/* ── Stage stepper ── */}
-          <div className="flex min-w-0 flex-1 items-center overflow-x-auto px-5">
-            <span className="mr-3 shrink-0 text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">Stage</span>
-            {STAGES.map((stage, i) => {
-              const done    = i < stageIdx
-              const current = i === stageIdx
-              const future  = i > stageIdx
-              return (
-                <div key={stage.key} className="flex items-center">
-                  {i > 0 && (
-                    <div className={cn(
-                      "mx-1.5 h-px w-5 shrink-0",
-                      done ? "bg-primary/40" : "bg-border/60"
-                    )} />
-                  )}
-                  <div className={cn(
-                    "flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium transition-all",
-                    done    && "text-primary/60",
-                    current && "bg-primary text-primary-foreground font-semibold shadow-sm",
-                    future  && "text-muted-foreground/35",
-                  )}>
-                    {done && <Check className="size-3 shrink-0" />}
-                    {stage.label}
-                  </div>
-                </div>
-              )
-            })}
           </div>
         </div>
       </header>

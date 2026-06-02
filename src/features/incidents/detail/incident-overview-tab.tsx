@@ -1,25 +1,33 @@
 import type { LucideIcon } from "lucide-react"
 import {
+  Activity,
   AlertTriangle,
   Bell,
   BookOpen,
   Brain,
+  Calendar,
   CheckCircle2,
   CheckSquare2,
+  ChevronRight,
   Cpu,
   ExternalLink,
   Globe,
   HelpCircle,
   Loader2,
   Mail,
+  MessageSquare,
   MinusCircle,
   Network,
+  Plus,
   RotateCcw,
   Search,
+  Send,
   Shield,
   ShieldAlert,
+  Sparkles,
   Tag,
   Timer,
+  User,
   UserCheck,
   Wrench,
   XCircle,
@@ -64,12 +72,21 @@ const stateLabel: Record<IncidentState, string> = {
   triage: "Triage", investigating: "Investigating", containment: "Containment",
   eradication: "Eradication", recovery: "Recovery", mitigated: "Mitigated", closed: "Closed",
 }
-const TL_DOT: Record<string, string> = {
-  system: "bg-muted-foreground/40", user: "bg-blue-500",
-  playbook: "bg-violet-500", integration: "bg-amber-500",
+const TL_META: Record<string, { icon: LucideIcon; label: string }> = {
+  system:      { icon: Cpu,       label: "System" },
+  user:        { icon: User,      label: "User" },
+  playbook:    { icon: BookOpen,  label: "Playbook" },
+  integration: { icon: Globe,     label: "Integration" },
 }
-const TL_LABEL: Record<string, string> = {
-  system: "System", user: "User", playbook: "Playbook", integration: "Integration",
+
+const TASK_PRIORITY_DOT: Record<string, string> = {
+  high:   "bg-destructive",
+  medium: "bg-amber-500",
+  low:    "bg-muted-foreground/40",
+}
+
+const TASK_PRIORITY_LABEL: Record<string, string> = {
+  high: "High priority", medium: "Medium priority", low: "Low priority",
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -216,34 +233,22 @@ export function IncidentOverviewTab({
       <Card className="overflow-hidden">
         <CardContent className="p-0">
 
-          {/* Card label */}
-          <div className="px-5 pt-4 pb-0">
-            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Incident Overview</span>
-          </div>
-
-          {/* Row 1 — ID + title + Source */}
-          <div className="flex items-center justify-between gap-4 px-5 pt-3 pb-2.5">
-            <div className="min-w-0 flex-1">
-              <div className="flex min-w-0 items-center gap-2.5">
-                <span className="shrink-0 font-mono text-xs font-medium text-muted-foreground/60">
-                  {incident.id}
-                </span>
-                <span className="h-3.5 w-px shrink-0 bg-border" />
-                <h2 className="min-w-0 truncate text-base font-semibold leading-snug">
-                  {incident.title}
-                </h2>
-              </div>
-            </div>
-            <div className="flex shrink-0 items-center gap-2 rounded-xl border bg-muted/40 px-3 py-1.5">
-              <div className="grid size-5 shrink-0 place-items-center">
-                <SourceIcon source={incident.source.label} size={20} iconOnly />
-              </div>
-              <p className="text-sm font-semibold leading-none">{incident.source.label}</p>
+          {/* Row 1 — ID + title + source */}
+          <div className="flex items-center gap-3 px-5 py-2">
+            <span className="shrink-0 font-mono text-xs font-medium text-muted-foreground/60">
+              {incident.id}
+            </span>
+            <span className="h-3.5 w-px shrink-0 bg-border" />
+            <h2 className="min-w-0 flex-1 truncate text-base font-semibold leading-snug">
+              {incident.title}
+            </h2>
+            <div className="shrink-0" title={`Source: ${incident.source.label}`}>
+              <SourceIcon source={incident.source.label} size={44} />
             </div>
           </div>
 
           {/* Row 2 — status chips + SLA + avatars */}
-          <div className="flex flex-wrap items-center gap-2 border-t px-5 py-2.5">
+          <div className="flex flex-wrap items-center gap-2 border-t px-5 py-2">
             <Badge variant="outline" className={cn("gap-1.5 border text-xs capitalize", severityBg[incident.severity], severityColor[incident.severity])}>
               <span className="size-1.5 rounded-full" style={{ background: "currentColor" }} />
               {incident.severity}
@@ -276,7 +281,7 @@ export function IncidentOverviewTab({
 
           {/* Row 3 — Classification + S3 */}
           <div className="grid border-t lg:grid-cols-[3fr_1fr] lg:divide-x">
-            <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-5 py-4">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 px-5 py-3">
               {([
                 { label: "Category",    value: incident.category },
                 { label: "Type",        value: incident.type.label },
@@ -284,10 +289,11 @@ export function IncidentOverviewTab({
                 { label: "Disposition", value: incident.disposition.replace(/-/g, " ") },
                 { label: "Customer",    value: incident.customer },
                 { label: "Location",    value: incident.location },
+                { label: "Source",      value: incident.source.label },
+                { label: "Source ID",   value: incident.sourceId },
                 { label: "Opener",      value: incident.openedBy.name },
                 { label: "Detected",    value: incident.detectionDate },
                 { label: "Started",     value: incident.startDate },
-                { label: "Source ID",   value: incident.sourceId },
                 { label: "Artifacts",   value: String(incident.artifacts) },
                 ...(incident.escalationDate ? [{ label: "Escalated", value: incident.escalationDate }] : []),
               ] as { label: string; value: string }[]).map(({ label, value }) => (
@@ -299,7 +305,7 @@ export function IncidentOverviewTab({
                 </div>
               ))}
             </div>
-            <div className="px-5 py-4">
+            <div className="px-5 py-3">
               <IncidentS3Widget score={incident.s3Score} breakdown={s3Breakdown} />
             </div>
           </div>
@@ -336,6 +342,20 @@ export function IncidentOverviewTab({
               progress={taskPct}
             />
           </div>
+
+          {/* Row 5 — Tags */}
+          {incident.tags.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 border-t px-5 py-2">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">Tags</span>
+              <span className="h-3 w-px shrink-0 bg-border/60" />
+              {incident.tags.map((t) => (
+                <span key={t} className="inline-flex items-center gap-1 rounded-full border bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                  <Tag className="size-2.5" />
+                  {t}
+                </span>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -452,153 +472,282 @@ export function IncidentOverviewTab({
         </CardContent>
       </Card>
 
-      {/* ══ 3. ACTIVITY + TASKS + COMMENTS ══════════════════════════════════ */}
-      <div className="grid gap-4 lg:grid-cols-[2fr_1fr_1fr]">
-
-        {/* Timeline */}
+      {/* ══ 3. MITRE ATT&CK ═════════════════════════════════════════════════ */}
+      {(mitre.techniques.length > 0 || mitre.tactics.length > 0) && (
         <Card className="overflow-hidden">
-          <CardContent className="p-5">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Recent Activity</div>
-              <span className="font-mono text-xs text-muted-foreground">{timeline.length} events</span>
+          <CardContent className="px-5 py-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">MITRE ATT&amp;CK</span>
+              <span className="h-3 w-px shrink-0 bg-border/60" />
+              {mitre.techniques.map((t) => (
+                <span key={t} className="rounded border border-primary/20 bg-primary/8 px-2 py-0.5 font-mono text-[11px] font-semibold text-primary">{t}</span>
+              ))}
+              {mitre.tactics.map((t) => (
+                <Badge key={t} variant="outline" className="text-[10px]">{t}</Badge>
+              ))}
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ══ 4. ACTIVITY ═════════════════════════════════════════════════════ */}
+      <Card className="overflow-hidden">
+        <CardContent className="p-0">
+          <div className="flex items-center justify-between border-b px-5 py-3">
+            <div className="flex items-center gap-2">
+              <Activity className="size-3.5 text-muted-foreground" />
+              <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Recent Activity</span>
+              <span className="font-mono text-xs text-muted-foreground/70">{timeline.length}</span>
+            </div>
+            <Button size="sm" variant="ghost" className="h-7 gap-1.5 px-2.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-primary">
+              View all
+              <ChevronRight className="size-3" />
+            </Button>
+          </div>
+          <div className="px-5 py-4">
             <div className="relative">
-              <div className="absolute bottom-0 left-1.25 top-0 w-px bg-border/40" />
-              <div className="space-y-4">
-                {timeline.slice(0, 7).map((ev) => {
-                  const dot   = TL_DOT[ev.kind]   ?? TL_DOT.system
-                  const badge = TL_LABEL[ev.kind] ?? "System"
+              <div className="absolute bottom-2 left-3 top-2 w-px bg-border/60" />
+              <ol className="space-y-3">
+                {timeline.slice(0, 6).map((ev) => {
+                  const meta = TL_META[ev.kind] ?? TL_META.system
+                  const EvIcon = meta!.icon
                   return (
-                    <div key={ev.id} className="relative flex gap-3.5">
-                      <div className={cn("relative z-10 mt-1.5 size-3 shrink-0 rounded-full border-2 border-background shadow-sm", dot)} />
+                    <li key={ev.id} className="relative flex gap-3">
+                      <div className="relative z-10 grid size-6 shrink-0 place-items-center rounded-full border-2 border-card bg-primary/10 text-primary">
+                        <EvIcon className="size-3" />
+                      </div>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs text-muted-foreground/60">{ev.when}</span>
-                          <span className="rounded bg-muted/60 px-1.5 py-px text-[10px] font-medium uppercase tracking-wide text-muted-foreground/60">
-                            {badge}
-                          </span>
+                        <div className="flex flex-wrap items-baseline gap-2">
+                          <span className="text-sm font-medium leading-snug">{ev.title}</span>
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">{meta!.label}</span>
+                          <span className="ml-auto font-mono text-[10px] text-muted-foreground/60">{ev.when}</span>
                         </div>
-                        <p className="mt-0.5 text-sm font-medium leading-snug">{ev.title}</p>
                         {ev.body && (
                           <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{ev.body}</p>
                         )}
                       </div>
-                    </div>
+                    </li>
                   )
                 })}
-              </div>
+              </ol>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ══ 4. TASKS + COMMENTS ═════════════════════════════════════════════ */}
+      <div className="grid gap-4 lg:grid-cols-2">
 
         {/* Tasks */}
         <Card className="overflow-hidden">
-          <CardContent className="p-5">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Tasks</div>
-              <span className="font-mono text-xs tabular-nums text-muted-foreground">{doneTasks}/{tasks.length} done</span>
+          <CardContent className="p-0">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b px-5 py-3">
+              <div className="flex items-center gap-2">
+                <CheckSquare2 className="size-3.5 text-muted-foreground" />
+                <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Tasks</span>
+                <span className="font-mono text-xs text-muted-foreground/70">{doneTasks}/{tasks.length}</span>
+              </div>
+              <Button size="sm" variant="outline" className="h-7 gap-1.5 px-2.5 text-[10px] font-semibold uppercase tracking-wider">
+                <Plus className="size-3" />
+                New
+              </Button>
             </div>
-            <div className="space-y-3">
-              {tasks.slice(0, 7).map((task) => (
-                <div key={task.id} className="flex items-start gap-3">
-                  <div className={cn(
-                    "mt-0.5 grid size-4 shrink-0 place-items-center rounded border",
-                    task.done ? "border-emerald-500/40 bg-emerald-500/15" : "border-border/60 bg-muted/20",
-                  )}>
-                    {task.done && <CheckCircle2 className="size-2.5 text-emerald-500" />}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className={cn(
-                      "text-sm leading-snug",
-                      task.done && "text-muted-foreground/50 line-through decoration-muted-foreground/30",
-                    )}>
-                      {task.label}
-                    </p>
-                    {task.owner && (
-                      <p className="mt-0.5 text-xs text-muted-foreground/60">{task.owner}</p>
-                    )}
-                  </div>
-                  {task.priority === "high" && (
-                    <span className="mt-0.5 shrink-0 rounded bg-destructive/10 px-1.5 py-px text-[10px] font-bold text-destructive/80">!</span>
-                  )}
+
+            {tasks.length === 0 ? (
+              <div className="flex flex-col items-center justify-center gap-2 px-5 py-8 text-center">
+                <div className="grid size-10 place-items-center rounded-xl border bg-muted text-muted-foreground/50">
+                  <CheckSquare2 className="size-5" />
                 </div>
-              ))}
-            </div>
+                <p className="text-sm font-medium">No tasks yet</p>
+                <p className="text-xs text-muted-foreground">Tasks generated by OmniSense or added by analysts will appear here.</p>
+              </div>
+            ) : (
+              <>
+                {/* Progress */}
+                <div className="flex items-center gap-3 border-b bg-muted/10 px-5 py-2.5">
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Progress</span>
+                  <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted/40">
+                    <div
+                      className={cn(
+                        "h-full rounded-full transition-all duration-700 ease-out",
+                        taskPct === 100 ? "bg-emerald-500" : "bg-linear-to-r from-primary to-chart-3",
+                      )}
+                      style={{ width: `${taskPct}%` }}
+                    />
+                  </div>
+                  <span className="font-mono text-[11px] font-semibold tabular-nums">{taskPct}%</span>
+                </div>
+
+                {/* Open + Done sections */}
+                <TaskSection title="Open"      tasks={tasks.filter((t) => !t.done)} />
+                <TaskSection title="Completed" tasks={tasks.filter((t) =>  t.done)} dim />
+              </>
+            )}
           </CardContent>
         </Card>
 
         {/* Comments */}
         <Card className="overflow-hidden">
-          <CardContent className="p-5">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Comments</div>
-              <span className="font-mono text-xs tabular-nums text-muted-foreground">{comments.length}</span>
+          <CardContent className="p-0">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b px-5 py-3">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="size-3.5 text-muted-foreground" />
+                <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Comments</span>
+                <span className="font-mono text-xs text-muted-foreground/70">{comments.length}</span>
+              </div>
+              <Button size="sm" variant="ghost" className="h-7 gap-1.5 px-2.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-primary">
+                View all
+                <ChevronRight className="size-3" />
+              </Button>
             </div>
-            <div className="space-y-4">
-              {comments.slice(0, 5).map((c) => (
-                <div key={c.id} className="flex items-start gap-3">
-                  <Avatar className="mt-0.5 size-7 shrink-0">
-                    {c.photo && <AvatarImage src={c.photo} alt={c.author} />}
-                    <AvatarFallback className={cn("bg-linear-to-br text-[9px] font-bold text-white", c.gradient)}>
-                      {c.initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold">{c.author}</span>
-                      <span className="text-xs text-muted-foreground/60">{c.when}</span>
+
+            {/* Comments list */}
+            {comments.length === 0 ? (
+              <div className="flex flex-col items-center justify-center gap-2 px-5 py-8 text-center">
+                <div className="grid size-10 place-items-center rounded-xl border bg-muted text-muted-foreground/50">
+                  <MessageSquare className="size-5" />
+                </div>
+                <p className="text-sm font-medium">No comments yet</p>
+                <p className="text-xs text-muted-foreground">Be the first to add a note on this incident.</p>
+              </div>
+            ) : (
+            <div className="divide-y">
+              {comments.slice(0, 4).map((c) => (
+                <div key={c.id} className={cn(
+                  "flex items-start gap-3 px-5 py-3",
+                  c.isSystem && "bg-primary/3",
+                )}>
+                  {c.isSystem ? (
+                    <div className="grid size-7 shrink-0 place-items-center rounded-lg border border-primary/25 bg-linear-to-br from-primary/20 to-primary/5 text-primary">
+                      <Sparkles className="size-3.5" />
                     </div>
-                    <p className="mt-0.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-                      {c.body}
-                    </p>
+                  ) : (
+                    <Avatar className="size-7 shrink-0">
+                      {c.photo && <AvatarImage src={c.photo} alt={c.author} />}
+                      <AvatarFallback className={cn("bg-linear-to-br text-[9px] font-bold text-white", c.gradient)}>
+                        {c.initials}
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-baseline gap-2">
+                      <span className="text-sm font-semibold leading-tight">{c.author}</span>
+                      {c.role && (
+                        <span className={cn(
+                          "text-[10px] font-semibold uppercase tracking-wider",
+                          c.isSystem ? "text-primary" : "text-muted-foreground/60",
+                        )}>
+                          {c.role}
+                        </span>
+                      )}
+                      <span className="ml-auto font-mono text-[10px] text-muted-foreground/60">{c.when}</span>
+                    </div>
+                    <p className="mt-1 line-clamp-3 text-sm leading-relaxed text-foreground/85">{c.body}</p>
                   </div>
                 </div>
               ))}
             </div>
+            )}
+
+            {/* Composer */}
+            <div className="flex items-center gap-2 border-t bg-muted/15 px-5 py-2.5 transition focus-within:bg-muted/25">
+              {incident.assignee ? (
+                <Avatar className="size-6 shrink-0">
+                  {incident.assignee.photo && <AvatarImage src={incident.assignee.photo} alt={incident.assignee.name} />}
+                  <AvatarFallback className={cn("bg-linear-to-br text-[8px] font-bold text-white", incident.assignee.gradient)}>
+                    {incident.assignee.initials}
+                  </AvatarFallback>
+                </Avatar>
+              ) : (
+                <div className="grid size-6 shrink-0 place-items-center rounded-full border bg-muted text-muted-foreground/70">
+                  <User className="size-3" />
+                </div>
+              )}
+              <input
+                type="text"
+                placeholder="Add a comment…"
+                className="min-w-0 flex-1 bg-transparent text-xs outline-none placeholder:text-muted-foreground/40"
+              />
+              <Button size="sm" variant="ghost" className="h-6 gap-1 px-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-primary">
+                <Send className="size-3" />
+                Send
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* ══ 4. MITRE + TAGS ═════════════════════════════════════════════════ */}
-      {(mitre.tactics.length > 0 || mitre.techniques.length > 0 || incident.tags.length > 0) && (
-        <div className="grid gap-4 lg:grid-cols-[3fr_1fr]">
-          {(mitre.tactics.length > 0 || mitre.techniques.length > 0) && (
-            <Card className="overflow-hidden">
-              <CardContent className="p-0">
-                <div className="flex flex-wrap items-center gap-2 px-5 py-4">
-                  <span className="mr-1 text-sm font-semibold">MITRE ATT&amp;CK</span>
-                  {mitre.techniques.map((t) => (
-                    <span key={t} className="rounded border border-primary/20 bg-primary/8 px-2.5 py-1 font-mono text-xs font-semibold text-primary">
-                      {t}
-                    </span>
-                  ))}
-                  {mitre.tactics.map((t) => (
-                    <Badge key={t} variant="outline" className="text-xs">{t}</Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-          {incident.tags.length > 0 && (
-            <Card className="overflow-hidden">
-              <CardContent className="p-0">
-                <div className="flex flex-wrap items-center gap-2 px-5 py-4">
-                  <Tag className="size-4 shrink-0 text-muted-foreground/60" />
-                  {incident.tags.map((t) => (
-                    <Badge key={t} variant="secondary" className="text-xs">{t}</Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      )}
 
     </div>
   )
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
+
+function TaskSection({ title, tasks, dim = false }: { title: string; tasks: TaskRow[]; dim?: boolean }) {
+  if (tasks.length === 0) return null
+  return (
+    <div>
+      <div className="border-b bg-muted/15 px-5 py-1.5">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+          {title}
+          <span className="ml-1 font-mono text-muted-foreground/50">{tasks.length}</span>
+        </span>
+      </div>
+      <ul className="divide-y">
+        {tasks.slice(0, 4).map((task) => (
+          <li key={task.id} className={cn("flex items-start gap-3 px-5 py-2.5", dim && "bg-muted/5")}>
+            <div className={cn(
+              "mt-0.5 grid size-4 shrink-0 place-items-center rounded border transition",
+              task.done
+                ? "border-primary bg-primary/15"
+                : "border-border/60 bg-muted/20 hover:border-primary/30",
+            )}>
+              {task.done && <CheckCircle2 className="size-2.5 text-primary" />}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                {task.priority && (
+                  <span
+                    title={TASK_PRIORITY_LABEL[task.priority]}
+                    className={cn("size-1.5 shrink-0 rounded-full", TASK_PRIORITY_DOT[task.priority])}
+                  />
+                )}
+                <span className={cn(
+                  "min-w-0 flex-1 truncate text-sm leading-snug",
+                  task.done && "text-muted-foreground/50 line-through decoration-muted-foreground/30",
+                )}>
+                  {task.label}
+                </span>
+              </div>
+              <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground/70">
+                {task.dueDate && (
+                  <span className="inline-flex items-center gap-1">
+                    <Calendar className="size-2.5" />
+                    {task.dueDate}
+                  </span>
+                )}
+                {task.category && (
+                  <>
+                    {task.dueDate && <span className="text-muted-foreground/30">·</span>}
+                    <span>{task.category}</span>
+                  </>
+                )}
+                {task.owner && (
+                  <>
+                    {(task.dueDate || task.category) && <span className="text-muted-foreground/30">·</span>}
+                    <span className="truncate">{task.owner}</span>
+                  </>
+                )}
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
 
 type StatTone = "muted" | "primary" | "warn" | "alert" | "ok"
 
@@ -622,7 +771,7 @@ function StatStrip({ icon, label, value, sub, tone = "muted", progress }: {
 }) {
   const t = STAT_TONE[tone]
   return (
-    <div className="flex flex-col gap-1.5 px-5 py-3">
+    <div className="flex flex-col gap-1 px-5 py-2.5">
       <div className="flex items-center justify-between gap-2">
         <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
         <div className={cn("grid size-8 shrink-0 place-items-center rounded-lg", STAT_ICON_BOX)}>

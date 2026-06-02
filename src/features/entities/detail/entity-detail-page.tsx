@@ -9,6 +9,7 @@ import {
   BookOpen,
   Building2,
   CheckCircle2,
+  ChevronDown,
   ChevronRight,
   Cloud,
   Cpu,
@@ -32,7 +33,6 @@ import {
   User,
   UserCheck,
   Wifi,
-  Zap,
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -45,6 +45,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Separator } from "@/components/ui/separator"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
@@ -146,25 +147,64 @@ export function EntityDetailPage() {
       <header className="shrink-0 border-b bg-card shadow-sm">
         <div className="h-[3px] w-full" style={{ background: `color-mix(in srgb, ${critHex} 55%, transparent)` }} />
 
-        {/* Row 1 */}
+        {/* Single-row header with inline pills + info popover */}
         <div className="flex h-12 items-center gap-3 px-5">
           <Button variant="ghost" size="icon" className="size-7 shrink-0 text-muted-foreground" asChild>
             <Link to="/entities"><ArrowLeft className="size-4" /></Link>
           </Button>
+
           <Badge variant="outline" className="shrink-0 font-mono text-[10px]">{entity.id}</Badge>
           <span className="size-2 shrink-0 rounded-full" style={{ background: `color-mix(in srgb, ${critHex} 80%, transparent)` }} />
+
           <h1 className="min-w-0 flex-1 truncate text-sm font-semibold">{entity.name}</h1>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="shrink-0 cursor-default opacity-70 transition-opacity hover:opacity-100">
-                <div className="grid size-5 place-items-center rounded border bg-muted text-muted-foreground">
-                  <TypeIcon className="size-3" />
-                </div>
+          {/* Inline metadata pills */}
+          <div className="flex shrink-0 items-center gap-1.5">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="cursor-default"><CritChip criticality={entity.criticality} /></span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Criticality — business impact</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="cursor-default"><StatusChip status={entity.status} /></span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Lifecycle status</TooltipContent>
+            </Tooltip>
+          </div>
+
+          {/* Info popover — type + department + dates + relationships */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border/60 bg-muted/40 px-2.5 py-1 text-xs transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary">
+                <TypeIcon className="size-3 opacity-70" />
+                <span className="font-semibold">{entity.type}</span>
+                <ChevronDown className="size-3 opacity-60" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-72 p-0">
+              <div className="border-b px-4 py-2.5">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Entity Info</span>
               </div>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">{entity.type}</TooltipContent>
-          </Tooltip>
+              <dl className="grid grid-cols-1 gap-x-4 gap-y-2 px-4 py-3">
+                {[
+                  { label: "Type",          value: entity.type },
+                  { label: "Department",    value: entity.department },
+                  { label: "Status",        value: STATUS_LABEL[entity.status] },
+                  { label: "Owner",         value: entity.owner?.name ?? "Unassigned" },
+                  { label: "Relationships", value: String(entity.relationships) },
+                  { label: "Created",       value: entity.created },
+                  { label: "Updated",       value: entity.updated },
+                ].map(({ label, value }) => (
+                  <div key={label} className="flex items-baseline gap-3">
+                    <dt className="w-24 shrink-0 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">{label}</dt>
+                    <dd className="min-w-0 truncate text-xs">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </PopoverContent>
+          </Popover>
 
           <Separator orientation="vertical" className="h-5" />
 
@@ -185,78 +225,6 @@ export function EntityDetailPage() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
-        </div>
-
-        {/* Row 2 — metadata strip */}
-        <div className="flex h-11 shrink-0 items-center border-t">
-          <div className="flex h-full shrink-0 items-center gap-2.5 border-r px-4">
-            <CritChip criticality={entity.criticality} />
-            <StatusChip status={entity.status} />
-
-            {entity.owner && (
-              <>
-                <div className="h-3.5 w-px shrink-0 bg-border/60" />
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex cursor-default items-center gap-1.5">
-                      <Avatar className="size-5 shrink-0">
-                        {entity.owner.photo && <AvatarImage src={entity.owner.photo} alt={entity.owner.name} />}
-                        <AvatarFallback className={cn("bg-linear-to-br text-[8px] font-bold text-white", entity.owner.gradient)}>
-                          {entity.owner.initials}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-xs text-muted-foreground">{entity.owner.name}</span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>Owner</TooltipContent>
-                </Tooltip>
-              </>
-            )}
-
-            <div className="h-3.5 w-px shrink-0 bg-border/60" />
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className={cn(
-                  "flex items-center gap-1 rounded-md px-2 py-1 text-xs font-bold tabular-nums",
-                  entity.s3Score >= 80 ? "bg-destructive/10 text-destructive" :
-                  entity.s3Score >= 50 ? "bg-amber-500/10 text-amber-600 dark:text-amber-400" :
-                  "bg-muted/60 text-muted-foreground",
-                )}>
-                  <Zap className="size-3 shrink-0" />S3&nbsp;{entity.s3Score}
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">S3 score · Severity · Scope · Speed</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-1 rounded-md bg-muted/60 px-2 py-1 text-xs font-semibold text-muted-foreground">
-                  <Network className="size-3 shrink-0" />
-                  <span className="font-mono tabular-nums">{entity.relationships}</span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">Relationships</TooltipContent>
-            </Tooltip>
-          </div>
-
-          {/* Right side: department + dates */}
-          <div className="flex min-w-0 flex-1 items-center gap-4 overflow-x-auto px-5 text-xs text-muted-foreground">
-            <div className="flex shrink-0 items-center gap-1.5">
-              <Building2 className="size-3 shrink-0 opacity-60" />
-              <span>{entity.department}</span>
-            </div>
-            <div className="h-3.5 w-px shrink-0 bg-border/60" />
-            <div className="flex shrink-0 items-center gap-1.5">
-              <span className="text-muted-foreground/60">Created</span>
-              <span>{entity.created}</span>
-            </div>
-            <div className="h-3.5 w-px shrink-0 bg-border/60" />
-            <div className="flex shrink-0 items-center gap-1.5">
-              <span className="text-muted-foreground/60">Updated</span>
-              <span>{entity.updated}</span>
-            </div>
           </div>
         </div>
       </header>
