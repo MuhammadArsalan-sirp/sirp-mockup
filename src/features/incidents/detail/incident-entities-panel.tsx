@@ -45,18 +45,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import type { EntityRow } from "./incident-detail-mock"
-
-/* ── Tone tokens ──────────────────────────────────────────────────────────── */
-
-type Tone = "alert" | "warn" | "ok" | "info" | "muted"
-
-const TONE: Record<Tone, { iconBox: string; chip: string; bg: string; text: string; dot: string; bar: string }> = {
-  alert: { iconBox: "border-destructive/30 bg-destructive/10 text-destructive",                       chip: "border-destructive/25 bg-destructive/10 text-destructive",                       bg: "bg-destructive/5",  text: "text-destructive",                       dot: "bg-destructive",       bar: "bg-destructive" },
-  warn:  { iconBox: "border-amber-500/30 bg-amber-500/10 text-amber-500",                             chip: "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-400",         bg: "bg-amber-500/5",     text: "text-amber-600 dark:text-amber-400",     dot: "bg-amber-500",         bar: "bg-amber-500" },
-  ok:    { iconBox: "border-emerald-500/30 bg-emerald-500/10 text-emerald-500",                       chip: "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500/5",   text: "text-emerald-600 dark:text-emerald-400", dot: "bg-emerald-500",       bar: "bg-emerald-500" },
-  info:  { iconBox: "border-primary/30 bg-primary/10 text-primary",                                   chip: "border-primary/25 bg-primary/10 text-primary",                                   bg: "bg-primary/5",       text: "text-primary",                           dot: "bg-primary",           bar: "bg-primary" },
-  muted: { iconBox: "border bg-muted text-muted-foreground",                                          chip: "border bg-muted text-muted-foreground",                                          bg: "bg-muted/40",        text: "text-foreground",                        dot: "bg-muted-foreground/50", bar: "bg-muted-foreground/40" },
-}
+import { TONE, type Tone } from "@/lib/tone"
 
 /* ── Risk & type meta ─────────────────────────────────────────────────────── */
 
