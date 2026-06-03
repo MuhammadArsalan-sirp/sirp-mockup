@@ -187,7 +187,7 @@ function AgentCard({ agent }: { agent: Agent }) {
   return (
     <div className="group flex flex-col rounded-xl border bg-card p-5">
       <div className="flex items-start gap-3">
-        <div className={`grid size-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br ${agent.iconTone} text-sm font-semibold text-white`}>
+        <div className={`grid size-11 shrink-0 place-items-center rounded-xl bg-linear-to-br ${agent.iconTone} text-sm font-semibold text-white`}>
           {agent.initials}
         </div>
         <div className="min-w-0 flex-1">
@@ -242,7 +242,7 @@ const agentListColumns: ColumnDef<Agent>[] = [
       const a = row.original
       return (
         <div className="flex items-center gap-3">
-          <div className={`grid size-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br ${a.iconTone} text-xs font-semibold text-white`}>
+          <div className={`grid size-8 shrink-0 place-items-center rounded-lg bg-linear-to-br ${a.iconTone} text-xs font-semibold text-white`}>
             {a.initials}
           </div>
           <div>

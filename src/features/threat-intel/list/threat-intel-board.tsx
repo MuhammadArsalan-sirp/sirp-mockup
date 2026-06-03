@@ -198,7 +198,7 @@ function renderCardField(field: BoardField, inc: ThreatIntel): React.ReactNode {
         <span
           key="assignee"
           title={inc.assignee.name}
-          className={`grid size-6 place-items-center rounded-full bg-gradient-to-br ${inc.assignee.gradient} text-[9px] font-semibold text-white`}
+          className={`grid size-6 place-items-center rounded-full bg-linear-to-br ${inc.assignee.gradient} text-[9px] font-semibold text-white`}
         >
           {inc.assignee.initials}
         </span>

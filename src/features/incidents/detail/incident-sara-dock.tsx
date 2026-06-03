@@ -43,7 +43,7 @@ export function IncidentSaraDock({
             className="flex flex-1 flex-col items-center gap-2 py-4 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"
             aria-label="Expand Sara co-analyst"
           >
-            <span className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-primary to-chart-3 text-white shadow-md">
+            <span className="grid size-10 place-items-center rounded-xl bg-linear-to-br from-primary to-chart-3 text-white shadow-md">
               <Sparkles className="size-4" />
             </span>
             <span
@@ -58,7 +58,7 @@ export function IncidentSaraDock({
         <>
           <div className="flex h-12 shrink-0 items-center justify-between gap-2 border-b bg-muted/30 px-3">
             <div className="flex min-w-0 items-center gap-2">
-              <span className="grid size-8 place-items-center rounded-lg bg-gradient-to-br from-primary to-chart-3 text-white shadow-sm">
+              <span className="grid size-8 place-items-center rounded-lg bg-linear-to-br from-primary to-chart-3 text-white shadow-sm">
                 <Sparkles className="size-4" />
               </span>
               <div className="min-w-0">

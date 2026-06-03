@@ -184,7 +184,7 @@ function renderCell(field: ListField, entity: Entity): React.ReactNode {
       return entity.owner ? (
         <span
           title={entity.owner.name}
-          className={`grid size-6 place-items-center rounded-full bg-gradient-to-br ${entity.owner.gradient} text-[10px] font-semibold text-white`}
+          className={`grid size-6 place-items-center rounded-full bg-linear-to-br ${entity.owner.gradient} text-[10px] font-semibold text-white`}
         >
           {entity.owner.initials}
         </span>

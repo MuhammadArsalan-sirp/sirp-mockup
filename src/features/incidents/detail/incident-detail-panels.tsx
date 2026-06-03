@@ -141,7 +141,7 @@ export function IncidentDetailPanels({ tab, data, onOpenWorkbench, onOpenOmniSen
             </Button>
           }
         >
-          <div className="flex aspect-[2/1] max-h-[320px] flex-col items-center justify-center rounded-xl border border-dashed border-primary/25 bg-gradient-to-b from-primary/5 to-transparent text-center">
+          <div className="flex aspect-[2/1] max-h-[320px] flex-col items-center justify-center rounded-xl border border-dashed border-primary/25 bg-linear-to-b from-primary/5 to-transparent text-center">
             <div className="mb-3 grid size-14 place-items-center rounded-2xl border bg-card/80 shadow-sm">
               <Map className="size-6 text-muted-foreground/40" />
             </div>
@@ -248,7 +248,7 @@ function CommentsPanel({ comments, incident }: { comments: CommentRow[]; inciden
             )}
           >
             {c.isSystem && (
-              <div className="absolute inset-y-0 left-0 w-[3px] bg-gradient-to-b from-primary to-chart-3" />
+              <div className="absolute inset-y-0 left-0 w-[3px] bg-linear-to-b from-primary to-chart-3" />
             )}
             <div className={cn("flex items-start gap-3", c.isSystem && "pl-1")}>
               <Avatar className="size-8 shrink-0">

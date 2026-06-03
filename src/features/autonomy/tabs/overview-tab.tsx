@@ -495,7 +495,7 @@ export function OverviewTab({ onNavigate }: Props) {
       <div
         className={cn(
           widgetCard,
-          "border-primary/12 bg-gradient-to-br from-primary/[0.05] via-card to-card p-4 sm:p-5"
+          "border-primary/12 bg-linear-to-br from-primary/[0.05] via-card to-card p-4 sm:p-5"
         )}
       >
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
@@ -618,7 +618,7 @@ export function OverviewTab({ onNavigate }: Props) {
                 <li key={req.id} className="px-6 py-3 text-sm">
                   <div className="flex items-start gap-3">
                     <div
-                      className={`grid size-8 shrink-0 place-items-center rounded-md bg-gradient-to-br ${req.appTone} text-[10px] font-semibold text-white`}
+                      className={`grid size-8 shrink-0 place-items-center rounded-md bg-linear-to-br ${req.appTone} text-[10px] font-semibold text-white`}
                     >
                       {req.appInitials}
                     </div>
@@ -687,7 +687,7 @@ export function OverviewTab({ onNavigate }: Props) {
             <div
               className={cn(
                 widgetCard,
-                "border-primary/15 bg-gradient-to-br from-primary/[0.07] via-card to-card p-5"
+                "border-primary/15 bg-linear-to-br from-primary/[0.07] via-card to-card p-5"
               )}
             >
               <div className="text-xs font-medium text-muted-foreground">Ingestion sources</div>
@@ -699,7 +699,7 @@ export function OverviewTab({ onNavigate }: Props) {
             <div
               className={cn(
                 widgetCard,
-                "border-primary/15 bg-gradient-to-br from-primary/[0.07] via-card to-card p-5"
+                "border-primary/15 bg-linear-to-br from-primary/[0.07] via-card to-card p-5"
               )}
             >
               <div className="text-xs font-medium text-muted-foreground">Published actions</div>
@@ -711,7 +711,7 @@ export function OverviewTab({ onNavigate }: Props) {
             <div
               className={cn(
                 widgetCard,
-                "border-primary/15 bg-gradient-to-br from-primary/[0.07] via-card to-card p-5"
+                "border-primary/15 bg-linear-to-br from-primary/[0.07] via-card to-card p-5"
               )}
             >
               <div className="text-xs font-medium text-muted-foreground">API calls · today</div>
@@ -928,7 +928,7 @@ export function OverviewTab({ onNavigate }: Props) {
             <div
               className={cn(
                 widgetCard,
-                "border-destructive/20 bg-gradient-to-br from-destructive/[0.06] via-card to-card p-5"
+                "border-destructive/20 bg-linear-to-br from-destructive/[0.06] via-card to-card p-5"
               )}
             >
               <div className="text-xs font-medium text-muted-foreground">Failed runs · sample</div>
@@ -940,7 +940,7 @@ export function OverviewTab({ onNavigate }: Props) {
             <div
               className={cn(
                 widgetCard,
-                "border-primary/15 bg-gradient-to-br from-primary/[0.07] via-card to-card p-5"
+                "border-primary/15 bg-linear-to-br from-primary/[0.07] via-card to-card p-5"
               )}
             >
               <div className="text-xs font-medium text-muted-foreground">Queued</div>
@@ -952,7 +952,7 @@ export function OverviewTab({ onNavigate }: Props) {
             <div
               className={cn(
                 widgetCard,
-                "border-primary/15 bg-gradient-to-br from-primary/[0.07] via-card to-card p-5"
+                "border-primary/15 bg-linear-to-br from-primary/[0.07] via-card to-card p-5"
               )}
             >
               <div className="text-xs font-medium text-muted-foreground">Avg agent success</div>

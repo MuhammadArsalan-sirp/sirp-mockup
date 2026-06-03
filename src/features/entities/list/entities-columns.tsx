@@ -94,7 +94,7 @@ function UserCell({ user }: { user: UserRef | null }) {
   return (
     <div className="inline-flex items-center gap-2.5">
       <span
-        className={`grid size-8 place-items-center rounded-full bg-gradient-to-br ${user.gradient} text-xs font-semibold text-white`}
+        className={`grid size-8 place-items-center rounded-full bg-linear-to-br ${user.gradient} text-xs font-semibold text-white`}
       >
         {user.initials}
       </span>

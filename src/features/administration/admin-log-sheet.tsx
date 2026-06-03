@@ -127,7 +127,7 @@ export function AdminLogSheet({ event, open, onOpenChange }: Props) {
               Actor
             </div>
             <div className="flex items-center gap-3 rounded-lg border bg-card p-3">
-              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-600 text-xs font-semibold text-white">
+              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-linear-to-br from-violet-500 to-fuchsia-600 text-xs font-semibold text-white">
                 SP
               </span>
               <div className="min-w-0 flex-1">

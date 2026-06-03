@@ -190,7 +190,7 @@ function ApprovalCard({ req, selected, onToggle }: { req: ApprovalRequest; selec
     <div className={cn("group flex flex-col rounded-xl border bg-card p-5 transition-shadow", selected && "ring-2 ring-primary/40", req.status === "pending" && "hover:shadow-sm")}>
       <div className="flex items-start gap-3">
         <Checkbox checked={selected} onCheckedChange={onToggle} className="mt-1" />
-        <div className={`grid size-10 shrink-0 place-items-center rounded-md bg-gradient-to-br ${req.appTone} text-xs font-semibold text-white`}>{req.appInitials}</div>
+        <div className={`grid size-10 shrink-0 place-items-center rounded-md bg-linear-to-br ${req.appTone} text-xs font-semibold text-white`}>{req.appInitials}</div>
         <div className="min-w-0 flex-1">
           <div className="font-semibold leading-tight">{req.action}</div>
           <div className="mt-0.5 truncate text-xs text-muted-foreground">via {req.app}</div>
@@ -213,7 +213,7 @@ function ApprovalCard({ req, selected, onToggle }: { req: ApprovalRequest; selec
       <div className="mt-2 truncate text-xs text-muted-foreground">{req.container.name}</div>
       <div className="mt-4 flex items-center justify-between border-t pt-3 text-xs">
         <div className="flex items-center gap-2">
-          <span className={`grid size-6 place-items-center rounded-full bg-gradient-to-br ${req.initiatedByTone} text-[10px] font-semibold text-white`}>{req.initiatedByInitials}</span>
+          <span className={`grid size-6 place-items-center rounded-full bg-linear-to-br ${req.initiatedByTone} text-[10px] font-semibold text-white`}>{req.initiatedByInitials}</span>
           <div className="leading-tight">
             <div className="font-medium">{req.initiatedBy}</div>
             <div className="flex items-center gap-1 text-[11px] text-muted-foreground"><Clock className="size-3" />{req.initiatedAt}</div>
@@ -256,7 +256,7 @@ const approvalListColumns: ColumnDef<ApprovalRequest>[] = [
       const req = row.original
       return (
         <div className="flex items-center gap-2">
-          <div className={`grid size-6 place-items-center rounded bg-gradient-to-br ${req.appTone} text-[10px] font-bold text-white`}>
+          <div className={`grid size-6 place-items-center rounded bg-linear-to-br ${req.appTone} text-[10px] font-bold text-white`}>
             {req.appInitials}
           </div>
           <span className="text-muted-foreground">{req.app}</span>

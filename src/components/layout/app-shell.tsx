@@ -12,6 +12,8 @@ function isFullBleedRoute(pathname: string) {
   // Incident / threat-intel / entity detail pages manage their own scroll and
   // layout edge-to-edge so they can host sticky headers + tabs.
   if (/^\/(incidents|threat-intel|entities)\/[^/]+(\/[nv]\d+)?$/.test(pathname)) return true
+  // Design system docs use their own sidebar + scrolling layout.
+  if (pathname.startsWith("/design-system")) return true
   return false
 }
 

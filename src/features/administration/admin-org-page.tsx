@@ -194,7 +194,7 @@ export function AdminOrgPage() {
               <Field label="Primary logo" hint="SVG preferred. Max 2MB. Used in the sidebar tenant switcher.">
                 <UploadCard
                   preview={
-                    <div className="grid size-12 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 font-bold text-white">
+                    <div className="grid size-12 shrink-0 place-items-center rounded-lg bg-linear-to-br from-emerald-500 to-teal-600 font-bold text-white">
                       A
                     </div>
                   }
@@ -207,7 +207,7 @@ export function AdminOrgPage() {
               <Field label="Favicon" hint="PNG or ICO, 32×32 minimum. Shown in browser tabs.">
                 <UploadCard
                   preview={
-                    <div className="grid size-12 shrink-0 place-items-center rounded-md bg-gradient-to-br from-emerald-500 to-teal-600 text-xs font-bold text-white">
+                    <div className="grid size-12 shrink-0 place-items-center rounded-md bg-linear-to-br from-emerald-500 to-teal-600 text-xs font-bold text-white">
                       A
                     </div>
                   }

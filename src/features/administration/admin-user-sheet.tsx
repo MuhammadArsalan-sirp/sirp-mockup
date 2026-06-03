@@ -86,7 +86,7 @@ export function AdminUserSheet({ user, open, onOpenChange }: Props) {
           <div className="flex items-start gap-4">
             <div
               className={cn(
-                "grid size-14 shrink-0 place-items-center rounded-full bg-gradient-to-br text-base font-semibold text-white",
+                "grid size-14 shrink-0 place-items-center rounded-full bg-linear-to-br text-base font-semibold text-white",
                 user.gradient
               )}
             >

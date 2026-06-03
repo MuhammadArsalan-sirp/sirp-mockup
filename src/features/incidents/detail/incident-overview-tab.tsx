@@ -53,20 +53,15 @@ import type {
   TimelineRow,
 } from "./incident-detail-mock"
 import { IncidentS3Widget } from "./incident-s3-widget"
+import { TONE, type Tone } from "@/lib/tone"
 
 // ── Static maps ───────────────────────────────────────────────────────────────
 
-const severityColor: Record<Severity, string> = {
-  critical: "text-destructive",
-  high:     "text-orange-500",
-  medium:   "text-amber-500",
-  low:      "text-muted-foreground",
-}
-const severityBg: Record<Severity, string> = {
-  critical: "bg-destructive/10 border-destructive/20",
-  high:     "bg-orange-500/10 border-orange-400/20",
-  medium:   "bg-amber-500/10 border-amber-400/20",
-  low:      "bg-muted/40 border-border",
+const SEVERITY_TONE: Record<Severity, Tone> = {
+  critical: "alert",
+  high:     "warn",
+  medium:   "info",
+  low:      "muted",
 }
 const stateLabel: Record<IncidentState, string> = {
   triage: "Triage", investigating: "Investigating", containment: "Containment",
@@ -104,18 +99,8 @@ function agentIconOf(name: string): LucideIcon {
   return Cpu
 }
 
-type VerdictTone = "alert" | "warn" | "ok" | "info" | "muted"
-
-const VERDICT_TONE: Record<VerdictTone, { iconBox: string; ring: string; bg: string; text: string }> = {
-  alert: { iconBox: "border-destructive/30 bg-destructive/10 text-destructive",       ring: "ring-destructive/20",  bg: "bg-destructive/5",       text: "text-destructive"       },
-  warn:  { iconBox: "border-amber-500/30 bg-amber-500/10 text-amber-500",             ring: "ring-amber-500/20",    bg: "bg-amber-500/5",          text: "text-amber-600 dark:text-amber-400" },
-  ok:    { iconBox: "border-emerald-500/30 bg-emerald-500/10 text-emerald-500",       ring: "ring-emerald-500/20",  bg: "bg-emerald-500/5",        text: "text-emerald-600 dark:text-emerald-400" },
-  info:  { iconBox: "border-primary/30 bg-primary/10 text-primary",                   ring: "ring-primary/20",      bg: "bg-primary/5",            text: "text-primary"           },
-  muted: { iconBox: "border bg-muted text-muted-foreground",                          ring: "ring-border",          bg: "bg-muted/40",             text: "text-foreground"        },
-}
-
 type Verdict = {
-  tone: VerdictTone
+  tone: Tone
   icon: LucideIcon
   title: string
   detail: string
@@ -215,7 +200,7 @@ export function IncidentOverviewTab({
   const runningAgent = agentRuns.find(a => a.status === "running")
 
   const verdict      = getOmniSenseVerdict(incident, omni.confidencePct)
-  const verdictTone  = VERDICT_TONE[verdict.tone]
+  const verdictTone  = TONE[verdict.tone]
   const VerdictIcon  = verdict.icon
 
   const maliciousIocs  = Math.ceil(incident.iocs * 0.6)
@@ -249,8 +234,8 @@ export function IncidentOverviewTab({
 
           {/* Row 2 — status chips + SLA + avatars */}
           <div className="flex flex-wrap items-center gap-2 border-t px-5 py-2">
-            <Badge variant="outline" className={cn("gap-1.5 border text-xs capitalize", severityBg[incident.severity], severityColor[incident.severity])}>
-              <span className="size-1.5 rounded-full" style={{ background: "currentColor" }} />
+            <Badge variant="outline" className={cn("gap-1.5 border text-xs capitalize", TONE[SEVERITY_TONE[incident.severity]].chip)}>
+              <span className={cn("size-1.5 rounded-full", TONE[SEVERITY_TONE[incident.severity]].dot)} />
               {incident.severity}
             </Badge>
             <Badge variant="secondary" className="text-xs">{stateLabel[incident.state]}</Badge>
@@ -379,13 +364,13 @@ export function IncidentOverviewTab({
                   </Badge>
                   {(() => {
                     const c = omni.confidencePct
-                    const conf =
-                      c >= 85 ? { cls: "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" } :
-                      c >= 70 ? { cls: "border-primary/30 bg-primary/10 text-primary" } :
-                      c >= 50 ? { cls: "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400" } :
-                                { cls: "border bg-muted text-muted-foreground" }
+                    const confTone: Tone =
+                      c >= 85 ? "ok" :
+                      c >= 70 ? "info" :
+                      c >= 50 ? "warn" :
+                      "muted"
                     return (
-                      <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5", conf.cls)}>
+                      <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5", TONE[confTone].chip)}>
                         <span className="font-mono text-xs font-bold tabular-nums">{c}%</span>
                         <span className="text-[9px] font-semibold uppercase tracking-wider opacity-80">Confidence</span>
                       </span>

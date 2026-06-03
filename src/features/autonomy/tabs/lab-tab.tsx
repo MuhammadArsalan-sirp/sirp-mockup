@@ -206,7 +206,7 @@ const labRunColumns: ColumnDef<LabRun>[] = [
           <div className="font-medium">{r.name}</div>
           {r.user && (
             <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-              <span className={`grid size-4 place-items-center rounded-full bg-gradient-to-br ${r.user.tone} text-[8px] font-semibold text-white`}>
+              <span className={`grid size-4 place-items-center rounded-full bg-linear-to-br ${r.user.tone} text-[8px] font-semibold text-white`}>
                 {r.user.initials}
               </span>
               {r.user.name}

@@ -153,7 +153,7 @@ export function NavUser() {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar
-                className={`size-8 rounded-lg bg-gradient-to-br ${currentUser.gradient}`}
+                className={`size-8 rounded-lg bg-linear-to-br ${currentUser.gradient}`}
               >
                 <AvatarFallback className="rounded-lg bg-transparent text-xs font-semibold text-white">
                   {currentUser.initials}

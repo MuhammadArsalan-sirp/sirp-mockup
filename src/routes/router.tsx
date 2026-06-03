@@ -10,7 +10,30 @@ import { ThreatIntelDetailPage } from "@/features/threat-intel/detail/threat-int
 import { EntitiesPage } from "@/features/entities/entities-page"
 import { EntityDetailPage } from "@/features/entities/detail/entity-detail-page"
 import { AutonomyPage } from "@/features/autonomy/autonomy-page"
-import { DesignSystemPage } from "@/features/design-system/design-system-page"
+import { DesignSystemLayout } from "@/features/design-system/design-system-layout"
+import { OverviewPage as DesignOverviewPage } from "@/features/design-system/pages/overview"
+import { ColorsPage as DesignColorsPage } from "@/features/design-system/pages/colors"
+import { TonesPage as DesignTonesPage } from "@/features/design-system/pages/tones"
+import { TypographyPage as DesignTypographyPage } from "@/features/design-system/pages/typography"
+import { SpacingPage as DesignSpacingPage } from "@/features/design-system/pages/spacing"
+import { IconsPage as DesignIconsPage } from "@/features/design-system/pages/icons"
+import { ComponentsIndexPage } from "@/features/design-system/pages/components/_index"
+import { ButtonPage as DesignButtonPage } from "@/features/design-system/pages/components/button"
+import { BadgePage as DesignBadgePage } from "@/features/design-system/pages/components/badge"
+import { CardPage as DesignCardPage } from "@/features/design-system/pages/components/card"
+import { AvatarPage as DesignAvatarPage } from "@/features/design-system/pages/components/avatar"
+import { InputPage as DesignInputPage } from "@/features/design-system/pages/components/input"
+import { CheckboxPage as DesignCheckboxPage } from "@/features/design-system/pages/components/checkbox"
+import { SwitchPage as DesignSwitchPage } from "@/features/design-system/pages/components/switch"
+import { TabsPage as DesignTabsPage } from "@/features/design-system/pages/components/tabs"
+import { TooltipPage as DesignTooltipPage } from "@/features/design-system/pages/components/tooltip"
+import { PopoverPage as DesignPopoverPage } from "@/features/design-system/pages/components/popover"
+import { DropdownMenuPage as DesignDropdownMenuPage } from "@/features/design-system/pages/components/dropdown-menu"
+import { SkeletonPage as DesignSkeletonPage } from "@/features/design-system/pages/components/skeleton"
+import { BrandPage as DesignBrandPage } from "@/features/design-system/pages/brand"
+import { PatternsPage as DesignPatternsPage } from "@/features/design-system/pages/patterns"
+import { LayoutsPage as DesignLayoutsPage } from "@/features/design-system/pages/layouts"
+import { RulesPage as DesignRulesPage } from "@/features/design-system/pages/rules"
 import { AdminLayout } from "@/features/administration/admin-layout"
 import { AdminOverviewPage } from "@/features/administration/admin-overview-page"
 import { AdminPosturePage } from "@/features/administration/admin-posture-page"
@@ -51,7 +74,35 @@ export const router = createBrowserRouter([
       { path: "entities/:id", element: <EntityDetailPage /> },
       { path: "autonomy", element: <AutonomyPage /> },
       { path: "autonomy/:tab", element: <AutonomyPage /> },
-      { path: "design-system", element: <DesignSystemPage /> },
+      {
+        path: "design-system",
+        element: <DesignSystemLayout />,
+        children: [
+          { index: true,             element: <DesignOverviewPage /> },
+          { path: "colors",          element: <DesignColorsPage /> },
+          { path: "tones",           element: <DesignTonesPage /> },
+          { path: "typography",      element: <DesignTypographyPage /> },
+          { path: "spacing",         element: <DesignSpacingPage /> },
+          { path: "icons",           element: <DesignIconsPage /> },
+          { path: "components",                  element: <ComponentsIndexPage /> },
+          { path: "components/button",           element: <DesignButtonPage /> },
+          { path: "components/badge",            element: <DesignBadgePage /> },
+          { path: "components/card",             element: <DesignCardPage /> },
+          { path: "components/avatar",           element: <DesignAvatarPage /> },
+          { path: "components/input",            element: <DesignInputPage /> },
+          { path: "components/checkbox",         element: <DesignCheckboxPage /> },
+          { path: "components/switch",           element: <DesignSwitchPage /> },
+          { path: "components/tabs",             element: <DesignTabsPage /> },
+          { path: "components/tooltip",          element: <DesignTooltipPage /> },
+          { path: "components/popover",          element: <DesignPopoverPage /> },
+          { path: "components/dropdown-menu",    element: <DesignDropdownMenuPage /> },
+          { path: "components/skeleton",         element: <DesignSkeletonPage /> },
+          { path: "brand",           element: <DesignBrandPage /> },
+          { path: "patterns",        element: <DesignPatternsPage /> },
+          { path: "layouts",         element: <DesignLayoutsPage /> },
+          { path: "rules",           element: <DesignRulesPage /> },
+        ],
+      },
       {
         path: "admin",
         element: <AdminLayout />,

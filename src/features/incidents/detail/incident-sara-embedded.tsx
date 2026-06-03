@@ -74,7 +74,7 @@ export function IncidentSaraEmbedded({ incident, className }: Props) {
             {/* Sara icon */}
             <div className="flex flex-col items-center gap-3">
               <div className="relative">
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 to-chart-3/20 blur-xl" />
+                <div className="absolute inset-0 rounded-full bg-linear-to-br from-primary/20 to-chart-3/20 blur-xl" />
                 <img
                   src="/brand/sara-icon.png"
                   alt="Sara"

@@ -192,7 +192,7 @@ function ApprovalWorkflowsView() {
               <div className="text-muted-foreground">Approvers</div>
               <div className="mt-1 flex -space-x-1.5">
                 {w.approvers.map((ap, i) => (
-                  <span key={i} className={`grid size-6 place-items-center rounded-full bg-gradient-to-br ${ap.tone} text-[10px] font-semibold text-white ring-2 ring-card`}>
+                  <span key={i} className={`grid size-6 place-items-center rounded-full bg-linear-to-br ${ap.tone} text-[10px] font-semibold text-white ring-2 ring-card`}>
                     {ap.initials}
                   </span>
                 ))}

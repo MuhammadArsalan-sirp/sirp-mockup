@@ -179,7 +179,7 @@ function UserCell({
   return (
     <div className="inline-flex items-center gap-2.5">
       <span
-        className={`grid ${sizeCls} place-items-center rounded-full bg-gradient-to-br ${user.gradient} font-semibold text-white`}
+        className={`grid ${sizeCls} place-items-center rounded-full bg-linear-to-br ${user.gradient} font-semibold text-white`}
       >
         {user.initials}
       </span>
@@ -207,7 +207,7 @@ function MembersStack({ members }: { members: UserRef[] }) {
           <span
             key={m.id}
             title={m.name}
-            className={`grid size-7 place-items-center rounded-full bg-gradient-to-br ${m.gradient} text-[11px] font-semibold text-white ring-2 ring-card`}
+            className={`grid size-7 place-items-center rounded-full bg-linear-to-br ${m.gradient} text-[11px] font-semibold text-white ring-2 ring-card`}
           >
             {m.initials}
           </span>

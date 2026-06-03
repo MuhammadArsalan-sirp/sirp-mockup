@@ -322,7 +322,7 @@ const playbookTableColumns: ColumnDef<Playbook>[] = [
       const pb = row.original
       return (
         <span className="inline-flex items-center gap-2">
-          <span className={`grid size-6 place-items-center rounded-full bg-gradient-to-br ${pb.owner.tone} text-[10px] font-semibold text-white`}>
+          <span className={`grid size-6 place-items-center rounded-full bg-linear-to-br ${pb.owner.tone} text-[10px] font-semibold text-white`}>
             {pb.owner.initials}
           </span>
           <span className="text-sm">{pb.owner.name}</span>

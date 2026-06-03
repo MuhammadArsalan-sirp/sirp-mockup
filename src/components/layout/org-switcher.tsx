@@ -66,7 +66,7 @@ export function OrgSwitcher() {
             >
               <Avatar
                 className={cn(
-                  "size-8 rounded-lg bg-gradient-to-br",
+                  "size-8 rounded-lg bg-linear-to-br",
                   active.gradient
                 )}
               >
@@ -104,7 +104,7 @@ export function OrgSwitcher() {
               >
                 <Avatar
                   className={cn(
-                    "size-7 rounded-md bg-gradient-to-br",
+                    "size-7 rounded-md bg-linear-to-br",
                     t.gradient
                   )}
                 >

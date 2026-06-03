@@ -225,7 +225,7 @@ function renderCell(field: ListField, inc: ThreatIntel): React.ReactNode {
       return inc.assignee ? (
         <span
           title={inc.assignee.name}
-          className={`grid size-6 place-items-center rounded-full bg-gradient-to-br ${inc.assignee.gradient} text-[10px] font-semibold text-white`}
+          className={`grid size-6 place-items-center rounded-full bg-linear-to-br ${inc.assignee.gradient} text-[10px] font-semibold text-white`}
         >
           {inc.assignee.initials}
         </span>
