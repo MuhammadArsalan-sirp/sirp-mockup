@@ -1,0 +1,11 @@
+{
+  "name": "SIRP OmniSense — Design System Builder",
+  "id": "sirp-omnisense-design-system",
+  "api": "1.0.0",
+  "main": "code.js",
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": ["none"]
+  },
+  "editorType": ["figma"]
+}
