@@ -20,9 +20,9 @@ import { cn } from "@/lib/utils"
 import type { AdminLogEvent, LogSeverity } from "@/data/admin"
 
 const severityPill: Record<LogSeverity, string> = {
-  info: "bg-info/15 text-info",
-  warn: "bg-attention/15 text-attention",
-  error: "bg-destructive/15 text-destructive",
+  info: "border-primary/25 bg-primary/10 text-primary",
+  warn: "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  error: "border-destructive/25 bg-destructive/10 text-destructive",
   sara: "bg-secondary text-secondary-foreground",
 }
 
@@ -178,33 +178,15 @@ export function AdminLogSheet({ event, open, onOpenChange }: Props) {
           <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             Changes
           </div>
-          <div
-            className="rounded-md border-l-2 p-2.5 font-mono text-xs"
-            style={{
-              background: "color-mix(in srgb, var(--destructive) 8%, transparent)",
-              borderLeftColor: "var(--destructive)",
-            }}
-          >
+          <div className="rounded-md border-l-2 border-destructive bg-destructive/10 p-2.5 font-mono text-xs">
             <span className="text-muted-foreground">status:</span> "investigating"{" "}
             <span className="text-muted-foreground">→</span> "resolved"
           </div>
-          <div
-            className="rounded-md border-l-2 p-2.5 font-mono text-xs"
-            style={{
-              background: "color-mix(in srgb, var(--success) 8%, transparent)",
-              borderLeftColor: "var(--success)",
-            }}
-          >
+          <div className="rounded-md border-l-2 border-emerald-500 bg-emerald-500/10 p-2.5 font-mono text-xs">
             <span className="text-muted-foreground">disposition:</span> null{" "}
             <span className="text-muted-foreground">→</span> "false-positive"
           </div>
-          <div
-            className="rounded-md border-l-2 p-2.5 font-mono text-xs"
-            style={{
-              background: "color-mix(in srgb, var(--success) 8%, transparent)",
-              borderLeftColor: "var(--success)",
-            }}
-          >
+          <div className="rounded-md border-l-2 border-emerald-500 bg-emerald-500/10 p-2.5 font-mono text-xs">
             <span className="text-muted-foreground">closed_at:</span> null{" "}
             <span className="text-muted-foreground">→</span> "2026-04-29T14:32:18Z"
           </div>

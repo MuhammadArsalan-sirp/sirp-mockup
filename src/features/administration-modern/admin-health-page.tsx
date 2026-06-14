@@ -98,7 +98,7 @@ export function AdminHealthPage() {
       </Card>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <DataCard icon={Activity} title="Recent incidents" contentClassName="px-0 py-0 pt-3">
+        <DataCard icon={Activity} title="Recent incidents" bodyPadding="none">
           <div className="divide-y text-sm">
             {healthIncidents.map((inc) => (
               <div key={inc.id} className="flex items-center justify-between gap-3 px-5 py-2.5">
@@ -112,7 +112,7 @@ export function AdminHealthPage() {
           </div>
         </DataCard>
 
-        <DataCard icon={Activity} title="Capacity headroom" contentClassName="px-0 py-0 pt-3">
+        <DataCard icon={Activity} title="Capacity headroom" bodyPadding="none">
           <div className="space-y-2 px-5 py-3">
             <Headroom label="API CPU"        used={42} note="58% headroom" />
             <Headroom label="Database disk"  used={41} note="59% headroom" />
@@ -139,7 +139,7 @@ function Headroom({
             tone === "ok" && "bg-emerald-500",
             tone === "warn" && "bg-amber-500",
             tone === "alert" && "bg-destructive",
-            tone === "primary" && "bg-primary"
+            tone === "info" && "bg-primary"
           )}
           style={{ width: `${used}%` }}
         />

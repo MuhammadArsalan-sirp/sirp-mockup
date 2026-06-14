@@ -42,7 +42,7 @@ const categoryMeta: Record<PostureCategory, { label: string; icon: LucideIcon }>
 const sevTone: Record<PostureSeverity, Tone> = {
   high:   "alert",
   medium: "warn",
-  low:    "primary",
+  low:    "info",
   ok:     "ok",
 }
 
@@ -67,7 +67,7 @@ export function AdminPosturePage() {
 
   const bandTone: Tone =
     score.band === "excellent" ? "ok"
-    : score.band === "good" ? "primary"
+    : score.band === "good" ? "info"
     : score.band === "fair" ? "warn"
     : "alert"
 
@@ -115,7 +115,7 @@ export function AdminPosturePage() {
             <div className="grid grid-cols-4 gap-2">
               <Count tone="alert"   label="High"    value={score.counts.high} />
               <Count tone="warn"    label="Medium"  value={score.counts.medium} />
-              <Count tone="primary" label="Low"     value={score.counts.low} />
+              <Count tone="info" label="Low"     value={score.counts.low} />
               <Count tone="ok"      label="Passing" value={score.counts.ok} />
             </div>
             <div className="hidden sm:block min-w-35">
@@ -199,7 +199,7 @@ function CheckRow({ check }: { check: PostureCheck }) {
               "mt-0.5 size-3.5 shrink-0",
               tone === "alert" && "text-destructive",
               tone === "warn" && "text-amber-600 dark:text-amber-400",
-              tone === "primary" && "text-primary",
+              tone === "info" && "text-primary",
               tone === "ok" && "text-emerald-600 dark:text-emerald-400"
             )}
           />

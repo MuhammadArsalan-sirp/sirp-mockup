@@ -4,15 +4,41 @@ import {
   Download,
   Network,
   Plus,
-  Search,
+  User,
+  Users,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { PageHeader } from "@/components/shared/page-header"
 import { cn } from "@/lib/utils"
 import { departments, type Department } from "@/data/admin"
-import { ToneChip } from "./admin-ui"
+import { FilterBar, SearchInput, ToneChip } from "./admin-ui"
+import { AdminFiltersPopover, type AdminFilterGroups } from "./admin-filters-popover"
+
+const DEPT_FILTERS: AdminFilterGroups = [
+  [
+    {
+      id: "manager",
+      label: "Manager",
+      icon: User,
+      options: [
+        { value: "ahmed",  label: "Ahmed Khan" },
+        { value: "sara",   label: "Sara Patel" },
+        { value: "mariam", label: "Mariam Al-Saud" },
+      ],
+    },
+    {
+      id: "group",
+      label: "Default group",
+      icon: Users,
+      options: [
+        { value: "soc",       label: "SOC" },
+        { value: "platform",  label: "Platform" },
+        { value: "leadership",label: "Leadership" },
+      ],
+    },
+  ],
+]
 
 type Node = Department & { children: Node[]; depth: number }
 
@@ -73,14 +99,14 @@ export function AdminDepartmentsPage() {
         }
       />
 
+      <FilterBar>
+        <SearchInput placeholder="Search departments…" />
+        <div className="flex-1" />
+        <AdminFiltersPopover groups={DEPT_FILTERS} />
+      </FilterBar>
+
       <Card>
         <CardContent className="px-0 py-0">
-          <div className="flex items-center gap-2 border-b px-4 py-2.5">
-            <div className="relative flex-1">
-              <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Search departments…" className="h-8 pl-8 text-sm" />
-            </div>
-          </div>
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b text-left text-[11px] uppercase tracking-wider text-muted-foreground">

@@ -67,7 +67,7 @@ export function AdminEmailPage() {
         </FormRow>
       </DataCard>
 
-      <DataCard icon={CheckCircle2} title="Deliverability" contentClassName="px-0 py-0 pt-3">
+      <DataCard icon={CheckCircle2} title="Deliverability" bodyPadding="none">
         <div className="grid grid-cols-3 divide-x">
           <Metric label="Sent today" value={emailConfig.sentToday.toLocaleString()} sub={`of ${emailConfig.dailyLimit.toLocaleString()}`} />
           <Metric label="Delivered" value={`${emailConfig.deliveryRate}%`} sub="last 24h" tone="ok" />

@@ -29,6 +29,46 @@ import {
   type AdminRole,
   type PermissionGroup,
 } from "@/data/admin"
+import { FilterBar, SearchInput } from "./admin-ui"
+import { AdminFiltersPopover, type AdminFilterGroups } from "./admin-filters-popover"
+
+const PERMISSION_FILTERS: AdminFilterGroups = [
+  [
+    {
+      id: "granted",
+      label: "Granted",
+      icon: ShieldCheck,
+      options: [
+        { value: "granted",    label: "Granted only" },
+        { value: "denied",     label: "Denied only" },
+        { value: "indeterminate", label: "Partially granted" },
+      ],
+    },
+    {
+      id: "module",
+      label: "Module",
+      icon: Folder,
+      options: [
+        { value: "incidents", label: "Incidents" },
+        { value: "ti",        label: "Threat intelligence" },
+        { value: "entities",  label: "Entities" },
+        { value: "sara",      label: "SARA / AI" },
+        { value: "admin",     label: "Administration" },
+        { value: "system",    label: "System" },
+      ],
+    },
+    {
+      id: "scope",
+      label: "Scope",
+      icon: Settings,
+      options: [
+        { value: "tenant",     label: "Tenant" },
+        { value: "department", label: "Department" },
+        { value: "self",       label: "Self" },
+      ],
+    },
+  ],
+]
 
 const groupIcons: Record<string, LucideIcon> = {
   AlertTriangle,
@@ -117,7 +157,7 @@ export function AdminRolesPage() {
                 <Badge className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] text-primary">
                   {activeRole.granted} permissions
                 </Badge>
-                <Badge className="rounded-full bg-info/15 px-2 py-0.5 text-[11px] text-info">
+                <Badge className="rounded-full border-primary/25 bg-primary/10 px-2 py-0.5 text-[11px] text-primary">
                   {activeRole.members} users assigned
                 </Badge>
                 {activeRole.locked && (
@@ -160,17 +200,8 @@ export function AdminRolesPage() {
           </div>
 
           {/* Permission toolbar */}
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="relative w-80">
-              <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search permissions…"
-                className="h-9 pl-9"
-              />
-            </div>
-            <Button variant="outline" size="sm" className="h-9">
-              Show only granted
-            </Button>
+          <FilterBar>
+            <SearchInput placeholder="Search permissions…" width="wide" />
             <div className="flex-1" />
             <Button variant="outline" size="sm" className="h-9">
               Copy from…
@@ -179,7 +210,8 @@ export function AdminRolesPage() {
               Group: Module
               <ChevronDown className="size-3.5 text-muted-foreground" />
             </Button>
-          </div>
+            <AdminFiltersPopover groups={PERMISSION_FILTERS} />
+          </FilterBar>
 
           {/* Permission groups */}
           <div className="space-y-3">
@@ -306,12 +338,12 @@ function PermissionGroupCard({
   const noneGranted = grantedCount === 0
 
   const barColor = allGranted
-    ? "var(--success)"
+    ? "rgb(16 185 129)"
     : noneGranted
     ? "var(--muted-foreground)"
     : pct >= 50
-    ? "var(--success)"
-    : "var(--attention)"
+    ? "rgb(16 185 129)"
+    : "rgb(245 158 11)"
 
   return (
     <div className="overflow-hidden rounded-xl border bg-card">
@@ -403,7 +435,7 @@ function SaveBar() {
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-6 z-40 flex justify-center">
       <div className="pointer-events-auto flex items-center gap-3 rounded-full border bg-popover py-1.5 pr-2 pl-4 text-sm shadow-lg">
-        <span className="size-2 rounded-full bg-attention" />
+        <span className="size-2 rounded-full bg-amber-500" />
         <span>
           <span className="font-semibold">3 changes</span> not saved
         </span>

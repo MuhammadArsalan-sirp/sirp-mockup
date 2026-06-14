@@ -170,7 +170,7 @@ export function AdminSsoPage() {
             </div>
           </DataCard>
 
-          <DataCard icon={KeyRound} title="Group mapping" contentClassName="px-0 py-0 pt-3">
+          <DataCard icon={KeyRound} title="Group mapping" bodyPadding="none">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left text-[11px] uppercase tracking-wider text-muted-foreground">

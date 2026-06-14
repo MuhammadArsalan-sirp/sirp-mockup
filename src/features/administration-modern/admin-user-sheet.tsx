@@ -21,17 +21,17 @@ import { cn } from "@/lib/utils"
 import type { AdminUser } from "@/data/admin"
 
 const statusPill: Record<AdminUser["status"], string> = {
-  active: "bg-success/15 text-success",
-  locked: "bg-destructive/15 text-destructive",
-  inactive: "bg-attention/15 text-attention",
-  pending: "bg-info/15 text-info",
+  active:   "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  locked:   "border-destructive/25 bg-destructive/10 text-destructive",
+  inactive: "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  pending:  "border-primary/25 bg-primary/10 text-primary",
 }
 
 const statusDot: Record<AdminUser["status"], string> = {
-  active: "bg-success",
-  locked: "bg-destructive",
-  inactive: "bg-attention",
-  pending: "bg-info",
+  active:   "bg-emerald-500",
+  locked:   "bg-destructive",
+  inactive: "bg-amber-500",
+  pending:  "bg-primary",
 }
 
 const statusLabel: Record<AdminUser["status"], string> = {
@@ -209,12 +209,12 @@ export function AdminUserSheet({ user, open, onOpenChange }: Props) {
                 }
                 trailing={
                   user.mfa === "disabled" || user.mfa === "pending" ? (
-                    <Badge className="bg-attention/15 text-attention rounded-full px-2 py-0.5 text-[10px]">
+                    <Badge className="border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-full px-2 py-0.5 text-[10px]">
                       <AlertCircle className="size-2.5" />
                       Required
                     </Badge>
                   ) : (
-                    <Badge className="bg-success/15 text-success rounded-full px-2 py-0.5 text-[10px]">
+                    <Badge className="border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full px-2 py-0.5 text-[10px]">
                       <CheckCircle2 className="size-2.5" />
                       Enabled
                     </Badge>
@@ -250,7 +250,7 @@ export function AdminUserSheet({ user, open, onOpenChange }: Props) {
             <SectionLabel>Recent activity</SectionLabel>
             <div className="mt-2 space-y-3 text-sm">
               <ActivityItem
-                tone="success"
+                tone="ok"
                 text={
                   <>
                     Closed incident{" "}
@@ -377,10 +377,10 @@ function ActivityItem({
 }: {
   text: React.ReactNode
   meta: string
-  tone?: "success" | "info"
+  tone?: "ok" | "info"
 }) {
   const dotClass =
-    tone === "success" ? "bg-success" : tone === "info" ? "bg-info" : "bg-muted-foreground"
+    tone === "ok" ? "bg-emerald-500" : tone === "info" ? "bg-primary" : "bg-muted-foreground"
   return (
     <div className="flex items-start gap-3">
       <div className={cn("mt-1.5 size-1.5 shrink-0 rounded-full", dotClass)} />

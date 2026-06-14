@@ -19,7 +19,7 @@ import {
 } from "./admin-ui"
 
 const statusTone: Record<BackupJob["status"], Tone> = {
-  success: "ok", running: "primary", failed: "alert",
+  success: "ok", running: "info", failed: "alert",
 }
 
 const statusLabel: Record<BackupJob["status"], string> = {
@@ -27,7 +27,7 @@ const statusLabel: Record<BackupJob["status"], string> = {
 }
 
 const scopeTone: Record<BackupJob["scope"], Tone> = {
-  full: "primary", incremental: "muted",
+  full: "info", incremental: "muted",
 }
 
 export function AdminBackupPage() {

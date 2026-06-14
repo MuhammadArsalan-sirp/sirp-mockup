@@ -34,26 +34,32 @@ import { BrandPage as DesignBrandPage } from "@/features/design-system/pages/bra
 import { PatternsPage as DesignPatternsPage } from "@/features/design-system/pages/patterns"
 import { LayoutsPage as DesignLayoutsPage } from "@/features/design-system/pages/layouts"
 import { RulesPage as DesignRulesPage } from "@/features/design-system/pages/rules"
-import { AdminLayout } from "@/features/administration/admin-layout"
-import { AdminOverviewPage } from "@/features/administration/admin-overview-page"
-import { AdminPosturePage } from "@/features/administration/admin-posture-page"
-import { AdminUsersPage } from "@/features/administration/admin-users-page"
-import { AdminGroupsPage } from "@/features/administration/admin-groups-page"
-import { AdminRolesPage } from "@/features/administration/admin-roles-page"
-import { AdminOrgPage } from "@/features/administration/admin-org-page"
-import { AdminLogsPage } from "@/features/administration/admin-logs-page"
-import { AdminSsoPage } from "@/features/administration/admin-sso-page"
-import { AdminSessionsPage } from "@/features/administration/admin-sessions-page"
-import { AdminEmailPage } from "@/features/administration/admin-email-page"
-import { AdminTemplatesPage } from "@/features/administration/admin-templates-page"
-import { AdminLicensePage } from "@/features/administration/admin-license-page"
-import { AdminHealthPage } from "@/features/administration/admin-health-page"
-import { AdminBackupPage } from "@/features/administration/admin-backup-page"
-import { AdminDepartmentsPage } from "@/features/administration/admin-departments-page"
-import { AdminTenantsPage } from "@/features/administration/admin-tenants-page"
+import { AdminLayout } from "@/features/administration-modern/admin-layout"
+import { AdminOverviewPage } from "@/features/administration-modern/admin-overview-page"
+import { AdminPosturePage } from "@/features/administration-modern/admin-posture-page"
+import { AdminUsersPage } from "@/features/administration-modern/admin-users-page"
+import { AdminGroupsPage } from "@/features/administration-modern/admin-groups-page"
+import { AdminRolesPage } from "@/features/administration-modern/admin-roles-page"
+import { AdminOrgPage } from "@/features/administration-modern/admin-org-page"
+import { AdminLogsPage } from "@/features/administration-modern/admin-logs-page"
+import { AdminSsoPage } from "@/features/administration-modern/admin-sso-page"
+import { AdminSessionsPage } from "@/features/administration-modern/admin-sessions-page"
+import { AdminEmailPage } from "@/features/administration-modern/admin-email-page"
+import { AdminTemplatesPage } from "@/features/administration-modern/admin-templates-page"
+import { AdminLicensePage } from "@/features/administration-modern/admin-license-page"
+import { AdminHealthPage } from "@/features/administration-modern/admin-health-page"
+import { AdminBackupPage } from "@/features/administration-modern/admin-backup-page"
+import { AdminDepartmentsPage } from "@/features/administration-modern/admin-departments-page"
+import { AdminTenantsPage } from "@/features/administration-modern/admin-tenants-page"
+import { AdminMasterDataPage as ModernAdminMasterDataPage } from "@/features/administration-modern/admin-master-data-page"
+import { AdminIncidentSetupPage } from "@/features/administration-modern/admin-incident-setup-page"
+import { AdminThreatIntelSetupPage } from "@/features/administration-modern/admin-threat-intel-setup-page"
+import { AdminEntitiesSetupPage } from "@/features/administration-modern/admin-entities-setup-page"
+import { AdminBrandingPage } from "@/features/administration-modern/admin-branding-page"
+// New (old-SIRP-aligned) administration module.
+import { AdminLayout as NewAdminLayout } from "@/features/administration/admin-layout"
+import { AdminOverviewPage as NewAdminOverviewPage } from "@/features/administration/admin-overview-page"
 import { AdminMasterDataPage } from "@/features/administration/admin-master-data-page"
-import { AdminIncidentSetupPage } from "@/features/administration/admin-incident-setup-page"
-import { AdminThreatIntelSetupPage } from "@/features/administration/admin-threat-intel-setup-page"
 import { LoginPage } from "@/features/auth/login-page"
 import { NotFoundPage } from "./not-found-page"
 
@@ -103,27 +109,88 @@ export const router = createBrowserRouter([
           { path: "rules",           element: <DesignRulesPage /> },
         ],
       },
+      // Primary /admin — old-SIRP-aligned 7-tab structure with v3 chemistry.
+      // Sub-pages with detailed UI reuse the existing v3 components from
+      // administration-modern; the rest render a placeholder so the IA is
+      // fully navigable.
       {
         path: "admin",
+        element: <NewAdminLayout />,
+        children: [
+          { index: true, element: <NewAdminOverviewPage /> },
+
+          // ── Organization tab — 4 sub-pages matching old SIRP ──
+          { path: "organization/information", element: <AdminOrgPage /> },
+          { path: "organization/tenants",     element: <AdminTenantsPage /> },
+          { path: "organization/:page",       element: <AdminMasterDataPage /> },
+
+          // ── Entities tab ──
+          { path: "entities/departments", element: <AdminDepartmentsPage /> },
+          { path: "entities/:page", element: <AdminMasterDataPage /> },
+
+          // ── Incident Management tab ──
+          { path: "incident-management/categories", element: <AdminIncidentSetupPage /> },
+          { path: "incident-management/:page", element: <AdminMasterDataPage /> },
+
+          // ── Threat Intelligence tab ──
+          { path: "threat-intelligence/categories", element: <AdminThreatIntelSetupPage /> },
+          { path: "threat-intelligence/:page", element: <AdminMasterDataPage /> },
+
+          // ── Access Control tab ──
+          { path: "access-control/users", element: <AdminUsersPage /> },
+          { path: "access-control/groups", element: <AdminGroupsPage /> },
+          { path: "access-control/roles", element: <AdminRolesPage /> },
+          { path: "access-control/sso", element: <AdminSsoPage /> },
+          { path: "access-control/session-policy", element: <AdminSessionsPage /> },
+          { path: "access-control/:page", element: <AdminMasterDataPage /> },
+
+          // ── Product Settings tab ──
+          { path: "product-settings/license", element: <AdminLicensePage /> },
+          { path: "product-settings/backup", element: <AdminBackupPage /> },
+          { path: "product-settings/email", element: <AdminEmailPage /> },
+          { path: "product-settings/templates", element: <AdminTemplatesPage /> },
+          { path: "product-settings/server-health", element: <AdminHealthPage /> },
+          { path: "product-settings/:page", element: <AdminMasterDataPage /> },
+
+          // ── Logs tab ──
+          { path: "logs/activity", element: <AdminLogsPage /> },
+          { path: "logs/:page", element: <AdminMasterDataPage /> },
+        ],
+      },
+
+      // Preserved v3 "modern" admin redesign (4-group sidebar IA).
+      // Lives at /admin-modern. The primary /admin route above uses a
+      // structure closer to old SIRP's 7-tab layout.
+      {
+        path: "admin-modern",
         element: <AdminLayout />,
         children: [
           { index: true, element: <AdminOverviewPage /> },
-          { path: "posture", element: <AdminPosturePage /> },
+          // Workspace
+          { path: "org", element: <AdminOrgPage /> },
+          { path: "branding", element: <AdminBrandingPage /> },
+          { path: "departments", element: <AdminDepartmentsPage /> },
+          { path: "tenants", element: <AdminTenantsPage /> },
+          { path: "license", element: <AdminLicensePage /> },
+          // Identity & Access
           { path: "users", element: <AdminUsersPage /> },
           { path: "groups", element: <AdminGroupsPage /> },
           { path: "roles", element: <AdminRolesPage /> },
-          { path: "org", element: <AdminOrgPage /> },
-          { path: "logs", element: <AdminLogsPage /> },
           { path: "sso", element: <AdminSsoPage /> },
           { path: "sessions", element: <AdminSessionsPage /> },
-          { path: "email", element: <AdminEmailPage /> },
-          { path: "templates", element: <AdminTemplatesPage /> },
-          { path: "license", element: <AdminLicensePage /> },
+          { path: "posture", element: <AdminPosturePage /> },
+          // Product configuration
+          { path: "products/incidents",    element: <AdminIncidentSetupPage /> },
+          { path: "products/threat-intel", element: <AdminThreatIntelSetupPage /> },
+          { path: "products/entities",     element: <AdminEntitiesSetupPage /> },
+          // Platform
           { path: "health", element: <AdminHealthPage /> },
           { path: "backup", element: <AdminBackupPage /> },
-          { path: "departments", element: <AdminDepartmentsPage /> },
-          { path: "tenants", element: <AdminTenantsPage /> },
-          { path: "master-data", element: <AdminMasterDataPage /> },
+          { path: "email", element: <AdminEmailPage /> },
+          { path: "templates", element: <AdminTemplatesPage /> },
+          { path: "logs", element: <AdminLogsPage /> },
+          // Legacy aliases (kept so any old bookmarks still work)
+          { path: "master-data", element: <ModernAdminMasterDataPage /> },
           { path: "incident-setup", element: <AdminIncidentSetupPage /> },
           { path: "threat-intel-setup", element: <AdminThreatIntelSetupPage /> },
         ],

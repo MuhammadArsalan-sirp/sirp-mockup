@@ -1,37 +1,105 @@
 import { useState } from "react"
 import {
+  Activity,
   CheckCircle2,
   ChevronDown,
+  Cloud,
   Download,
-  Filter,
   KeyRound,
   Lock,
   MoreHorizontal,
   RefreshCw,
-  Search,
+  Shield,
+  ShieldCheck,
   SlidersHorizontal,
   UserPlus,
   Users,
   UsersRound,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { PageHeader } from "@/components/shared/page-header"
 import { cn } from "@/lib/utils"
 import { adminUsers, type AdminUser } from "@/data/admin"
 import { AdminUserSheet } from "./admin-user-sheet"
+import { AdminFiltersPopover, type AdminFilterGroups } from "./admin-filters-popover"
 import {
-  ToneChip,
+  FilterBar,
+  SearchInput,
   StatusDot,
+  ToneChip,
   type Tone,
 } from "./admin-ui"
+
+const USER_FILTERS: AdminFilterGroups = [
+  [
+    {
+      id: "status",
+      label: "Status",
+      icon: Activity,
+      options: [
+        { value: "active",   label: "Active" },
+        { value: "pending",  label: "Pending invite" },
+        { value: "inactive", label: "Inactive" },
+        { value: "locked",   label: "Locked" },
+      ],
+    },
+    {
+      id: "role",
+      label: "Role",
+      icon: ShieldCheck,
+      options: [
+        { value: "super-admin",  label: "Super Admin" },
+        { value: "soc-manager",  label: "SOC Manager" },
+        { value: "analyst",      label: "Analyst" },
+        { value: "readonly",     label: "Read-only" },
+        { value: "engineer",     label: "Detection Engineer" },
+      ],
+    },
+    {
+      id: "group",
+      label: "Group",
+      icon: UsersRound,
+      options: [
+        { value: "soc",       label: "SOC" },
+        { value: "ir",        label: "Incident Response" },
+        { value: "threat",    label: "Threat Intel" },
+        { value: "platform",  label: "Platform" },
+        { value: "leadership",label: "Leadership" },
+      ],
+    },
+  ],
+  [
+    {
+      id: "source",
+      label: "Source",
+      icon: Cloud,
+      options: [
+        { value: "local",  label: "Local" },
+        { value: "okta",   label: "Okta" },
+        { value: "entra",  label: "Entra ID" },
+        { value: "google", label: "Google Workspace" },
+      ],
+    },
+    {
+      id: "mfa",
+      label: "MFA",
+      icon: Shield,
+      options: [
+        { value: "totp",     label: "TOTP" },
+        { value: "webauthn", label: "WebAuthn / key" },
+        { value: "pending",  label: "Pending" },
+        { value: "disabled", label: "Disabled" },
+      ],
+    },
+  ],
+]
 
 const statusTone: Record<AdminUser["status"], Tone> = {
   active:   "ok",
   locked:   "alert",
   inactive: "warn",
-  pending:  "primary",
+  pending:  "info",
 }
 
 const statusLabel: Record<AdminUser["status"], string> = {
@@ -95,26 +163,16 @@ export function AdminUsersPage() {
       />
 
       {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative w-70">
-          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search users…" className="h-9 pl-9" />
-        </div>
-        <FilterTrigger label="Status" badge="2" />
-        <FilterTrigger label="Role" />
-        <FilterTrigger label="Group" />
-        <FilterTrigger label="Source" />
-        <Button variant="outline" size="sm" className="h-9">
-          <Filter className="size-4 text-muted-foreground" />
-          More filters
-        </Button>
+      <FilterBar>
+        <SearchInput placeholder="Search users…" />
         <div className="flex-1" />
         <Button variant="outline" size="sm" className="h-9">
           <SlidersHorizontal className="size-4 text-muted-foreground" />
           Display
           <ChevronDown className="size-3.5 text-muted-foreground" />
         </Button>
-      </div>
+        <AdminFiltersPopover groups={USER_FILTERS} />
+      </FilterBar>
 
       {/* Bulk action bar */}
       {selectedRows.size > 0 && (
@@ -295,16 +353,3 @@ function Th({ children }: { children: React.ReactNode }) {
   )
 }
 
-function FilterTrigger({ label, badge }: { label: string; badge?: string }) {
-  return (
-    <Button variant="outline" size="sm" className="h-9">
-      {label}
-      {badge && (
-        <span className="ml-1 rounded bg-secondary px-1 text-[11px] tabular-nums">
-          {badge}
-        </span>
-      )}
-      <ChevronDown className="size-3.5 text-muted-foreground" />
-    </Button>
-  )
-}

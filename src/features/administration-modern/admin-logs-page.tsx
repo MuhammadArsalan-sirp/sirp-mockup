@@ -26,11 +26,113 @@ import {
   type LogSeverity,
 } from "@/data/admin"
 import { AdminLogSheet } from "./admin-log-sheet"
+import { AdminFiltersPopover, type AdminFilterGroups } from "./admin-filters-popover"
+import { FilterBar } from "./admin-ui"
+import { AlertCircle as IconAlert, FileText, Globe, KeyRound, Server, User as IconUser, ShieldCheck as IconShield, Tag, Wrench } from "lucide-react"
+
+const LOG_FILTERS: AdminFilterGroups = [
+  [
+    {
+      id: "severity",
+      label: "Severity",
+      icon: IconAlert,
+      options: [
+        { value: "error", label: "Error" },
+        { value: "warn",  label: "Warn" },
+        { value: "info",  label: "Info" },
+        { value: "sara",  label: "SARA" },
+      ],
+    },
+    {
+      id: "actor",
+      label: "Actor",
+      icon: IconUser,
+      options: [
+        { value: "ahmed",  label: "Ahmed Khan" },
+        { value: "sara",   label: "Sara Patel" },
+        { value: "mariam", label: "Mariam Al-Saud" },
+        { value: "system", label: "System" },
+        { value: "sara-co", label: "SARA Co-Analyst" },
+      ],
+    },
+    {
+      id: "action",
+      label: "Action",
+      icon: Wrench,
+      options: [
+        { value: "create", label: "Create" },
+        { value: "update", label: "Update" },
+        { value: "delete", label: "Delete" },
+        { value: "login",  label: "Sign-in" },
+        { value: "export", label: "Export" },
+      ],
+    },
+  ],
+  [
+    {
+      id: "resourceType",
+      label: "Resource type",
+      icon: Tag,
+      options: [
+        { value: "incident",  label: "Incident" },
+        { value: "user",      label: "User" },
+        { value: "role",      label: "Role" },
+        { value: "playbook",  label: "Playbook" },
+        { value: "tenant",    label: "Tenant" },
+      ],
+    },
+    {
+      id: "source",
+      label: "Source",
+      icon: Globe,
+      options: [
+        { value: "ui",      label: "Web UI" },
+        { value: "api",     label: "API" },
+        { value: "webhook", label: "Webhook" },
+        { value: "system",  label: "System" },
+      ],
+    },
+  ],
+  [
+    {
+      id: "ipRange",
+      label: "IP range",
+      icon: Server,
+      options: [],
+    },
+    {
+      id: "sso",
+      label: "SSO provider",
+      icon: KeyRound,
+      options: [
+        { value: "okta",   label: "Okta" },
+        { value: "entra",  label: "Entra ID" },
+        { value: "google", label: "Google Workspace" },
+      ],
+    },
+    {
+      id: "compliance",
+      label: "Compliance scope",
+      icon: IconShield,
+      options: [
+        { value: "pci",   label: "PCI-DSS" },
+        { value: "hipaa", label: "HIPAA" },
+        { value: "sox",   label: "SOX" },
+      ],
+    },
+    {
+      id: "export",
+      label: "Export reason",
+      icon: FileText,
+      options: [],
+    },
+  ],
+]
 
 const severityPill: Record<LogSeverity, string> = {
-  info: "bg-info/15 text-info",
-  warn: "bg-attention/15 text-attention",
-  error: "bg-destructive/15 text-destructive",
+  info: "border-primary/25 bg-primary/10 text-primary",
+  warn: "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  error: "border-destructive/25 bg-destructive/10 text-destructive",
   sara: "bg-secondary text-secondary-foreground",
 }
 
@@ -43,7 +145,7 @@ const severityLabel: Record<LogSeverity, string> = {
 
 const severityBorder: Record<LogSeverity, string> = {
   info: "",
-  warn: "border-l-2 border-attention",
+  warn: "border-l-2 border-amber-500",
   error: "border-l-2 border-destructive",
   sara: "",
 }
@@ -104,10 +206,10 @@ export function AdminLogsPage() {
         }
         actions={
           <>
-            <Badge className="gap-1.5 bg-success/10 text-success border border-success/30 px-2.5 py-1 rounded-full">
+            <Badge className="gap-1.5 border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-full">
               <span className="relative flex size-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-50" />
-                <span className="relative inline-flex size-2 rounded-full bg-success" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-50" />
+                <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
               </span>
               Live tail
             </Badge>
@@ -139,16 +241,16 @@ export function AdminLogsPage() {
             </div>
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
               <Legend dot="bg-chart-1" label="Activity" />
-              <Legend dot="bg-attention" label="Auth fails" />
+              <Legend dot="bg-amber-500" label="Auth fails" />
               <Legend dot="bg-destructive" label="Errors" />
             </div>
           </div>
           <div className="flex h-20 items-end gap-1">
             {logHistogram.map((h, idx) => {
-              // Highlight a couple of bars in attention/destructive tones
+              // Highlight a couple of bars with warn/alert tones
               const tone =
                 idx === 11
-                  ? "var(--attention)"
+                  ? "rgb(245 158 11)"
                   : idx === 22
                   ? "var(--destructive)"
                   : "var(--chart-1)"
@@ -174,13 +276,13 @@ export function AdminLogsPage() {
           <MiniStatCard
             label="Suspicious sign-ins"
             value="8"
-            tone="attention"
+            tone="warn"
             caption="From 3 unique IPs"
           />
           <MiniStatCard
             label="Errors (1h)"
             value="12"
-            tone="destructive"
+            tone="alert"
             caption="0.04% error rate"
           />
           <MiniStatCard
@@ -229,8 +331,8 @@ export function AdminLogsPage() {
       </div>
 
       {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative w-80">
+      <FilterBar>
+        <div className="relative w-full md:w-80">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search by actor, action, target, or query…"
@@ -241,27 +343,8 @@ export function AdminLogsPage() {
           </kbd>
         </div>
         <Button variant="outline" size="sm" className="h-9">
-          <Calendar className="size-4 text-muted-foreground" />
+          <Calendar className="size-3.5 text-muted-foreground" />
           Last 24 hours
-          <ChevronDown className="size-3.5 text-muted-foreground" />
-        </Button>
-        <Button variant="outline" size="sm" className="h-9">
-          Severity
-          <span className="rounded bg-secondary px-1 text-[11px] tabular-nums">
-            3
-          </span>
-          <ChevronDown className="size-3.5 text-muted-foreground" />
-        </Button>
-        <Button variant="outline" size="sm" className="h-9">
-          Actor
-          <ChevronDown className="size-3.5 text-muted-foreground" />
-        </Button>
-        <Button variant="outline" size="sm" className="h-9">
-          Action
-          <ChevronDown className="size-3.5 text-muted-foreground" />
-        </Button>
-        <Button variant="outline" size="sm" className="h-9">
-          Resource type
           <ChevronDown className="size-3.5 text-muted-foreground" />
         </Button>
         <div className="flex-1" />
@@ -271,7 +354,8 @@ export function AdminLogsPage() {
             5s
           </span>
         </span>
-      </div>
+        <AdminFiltersPopover groups={LOG_FILTERS} />
+      </FilterBar>
 
       {/* Log list */}
       <div className="rounded-md border bg-card">
@@ -390,7 +474,7 @@ function MiniStatCard({
   label: string
   value: React.ReactNode
   caption: string
-  tone?: "destructive" | "attention"
+  tone?: "alert" | "warn"
 }) {
   return (
     <div className="rounded-xl border bg-card p-4">
@@ -398,8 +482,8 @@ function MiniStatCard({
       <div
         className={cn(
           "mt-1 text-xl font-semibold tabular-nums",
-          tone === "destructive" && "text-destructive",
-          tone === "attention" && "text-attention"
+          tone === "alert" && "text-destructive",
+          tone === "warn" && "text-amber-600 dark:text-amber-400"
         )}
       >
         {value}

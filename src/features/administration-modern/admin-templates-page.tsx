@@ -29,7 +29,7 @@ import {
 
 const categoryMeta: Record<NotificationTemplate["category"], { label: string; icon: LucideIcon; tone: Tone }> = {
   incident: { label: "Incident", icon: AlertTriangle, tone: "alert" },
-  access:   { label: "Access",   icon: Shield,        tone: "primary" },
+  access:   { label: "Access",   icon: Shield,        tone: "info" },
   system:   { label: "System",   icon: Bell,          tone: "warn" },
   digest:   { label: "Digest",   icon: FileText,      tone: "muted" },
 }

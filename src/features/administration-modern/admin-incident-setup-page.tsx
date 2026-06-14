@@ -4,14 +4,12 @@ import {
   Clock,
   Layers,
   Plus,
-  Search,
   Tag,
   Workflow,
   type LucideIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { PageHeader } from "@/components/shared/page-header"
 import { cn } from "@/lib/utils"
 import {
@@ -22,17 +20,55 @@ import {
   type IncidentState,
 } from "@/data/admin"
 import {
+  FilterBar,
+  SearchInput,
   StatusDot,
   ToneChip,
   type Tone,
 } from "./admin-ui"
+import { AdminFiltersPopover, type AdminFilterGroups } from "./admin-filters-popover"
+
+const CATEGORY_FILTERS: AdminFilterGroups = [
+  [
+    {
+      id: "severity",
+      label: "Default severity",
+      icon: Tag,
+      options: [
+        { value: "Sev1", label: "Sev1 · Critical" },
+        { value: "Sev2", label: "Sev2 · High" },
+        { value: "Sev3", label: "Sev3 · Medium" },
+        { value: "Sev4", label: "Sev4 · Low" },
+        { value: "Sev5", label: "Sev5 · Info" },
+      ],
+    },
+    {
+      id: "status",
+      label: "Status",
+      icon: Workflow,
+      options: [
+        { value: "enabled",  label: "Enabled" },
+        { value: "disabled", label: "Disabled" },
+      ],
+    },
+    {
+      id: "playbook",
+      label: "Linked playbook",
+      icon: Layers,
+      options: [
+        { value: "yes", label: "Has playbook" },
+        { value: "no",  label: "No playbook" },
+      ],
+    },
+  ],
+]
 
 const sevTone: Record<IncidentCategoryRow["defaultSeverity"], Tone> = {
-  Sev1: "alert", Sev2: "warn", Sev3: "primary", Sev4: "muted", Sev5: "ok",
+  Sev1: "alert", Sev2: "warn", Sev3: "info", Sev4: "muted", Sev5: "ok",
 }
 
 const stateTone: Record<IncidentState["kind"], Tone> = {
-  open: "alert", "in-progress": "warn", waiting: "primary", closed: "ok",
+  open: "alert", "in-progress": "warn", waiting: "info", closed: "ok",
 }
 
 type Tab = "categories" | "states" | "fields"
@@ -97,15 +133,16 @@ export function AdminIncidentSetupPage() {
 
 function CategoriesTab() {
   return (
-    <Card>
-      <CardContent className="px-0 py-0">
-        <div className="flex items-center gap-2 border-b px-4 py-2.5">
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Search categories…" className="h-8 pl-8 text-sm" />
-          </div>
-        </div>
-        <table className="w-full text-sm">
+    <div className="space-y-3">
+      <FilterBar>
+        <SearchInput placeholder="Search categories…" />
+        <div className="flex-1" />
+        <AdminFiltersPopover groups={CATEGORY_FILTERS} />
+      </FilterBar>
+
+      <Card>
+        <CardContent className="px-0 py-0">
+          <table className="w-full text-sm">
           <thead>
             <tr className="border-b text-left text-[11px] uppercase tracking-wider text-muted-foreground">
               <th className="px-4 py-2 font-medium">Category</th>
@@ -147,8 +184,9 @@ function CategoriesTab() {
             ))}
           </tbody>
         </table>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 

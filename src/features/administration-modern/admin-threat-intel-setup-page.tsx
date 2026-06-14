@@ -128,7 +128,7 @@ export function AdminThreatIntelSetupPage() {
         </CardContent>
       </Card>
 
-      <DataCard icon={CheckCircle2} title="Entity taxonomy" contentClassName="px-0 py-0 pt-3">
+      <DataCard icon={CheckCircle2} title="Entity taxonomy" bodyPadding="none">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b text-left text-[11px] uppercase tracking-wider text-muted-foreground">

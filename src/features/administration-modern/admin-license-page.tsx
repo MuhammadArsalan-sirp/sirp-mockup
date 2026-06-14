@@ -66,7 +66,7 @@ export function AdminLicensePage() {
         </FormRow>
       </DataCard>
 
-      <DataCard icon={Sparkles} title="Features included" contentClassName="px-0 py-0 pt-3">
+      <DataCard icon={Sparkles} title="Features included" bodyPadding="none">
         <div className="grid grid-cols-1 divide-y sm:grid-cols-2 sm:divide-x sm:divide-y-0">
           <div className="divide-y">
             {licenseDetail.features.slice(0, 4).map((f) => (
@@ -94,7 +94,7 @@ export function AdminLicensePage() {
         </FormRow>
       </DataCard>
 
-      <DataCard icon={Download} title="Invoice history" contentClassName="px-0 py-0 pt-3">
+      <DataCard icon={Download} title="Invoice history" bodyPadding="none">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b text-left text-[11px] uppercase tracking-wider text-muted-foreground">

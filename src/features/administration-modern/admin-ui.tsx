@@ -4,41 +4,44 @@
  *   - Card → CardContent px-5 py-4
  *   - Section labels: text-[11px] font-medium uppercase tracking-wider
  *   - KPI value: font-medium text-2xl tabular-nums leading-none tracking-tight
- *   - Tone palette: muted | primary | warn | alert | ok
+ *   - Tone palette comes from the canonical @/lib/tone (alert | warn | ok | info | muted)
  */
 import type { ElementType, ReactNode } from "react"
-import { ChevronRight } from "lucide-react"
+import { ChevronRight, Search } from "lucide-react"
 import { Link } from "react-router"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { TONE, type Tone } from "@/lib/tone"
 
 // ─── tone palette ─────────────────────────────────────────────────
+// Re-export so admin pages keep their existing import surface.
 
-export type Tone = "muted" | "primary" | "warn" | "alert" | "ok"
+export { type Tone }
 
 export const toneClasses: Record<Tone, string> = {
-  muted:   "border bg-muted text-muted-foreground",
-  primary: "border-primary/25 bg-primary/10 text-primary",
-  warn:    "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-400",
-  alert:   "border-destructive/25 bg-destructive/10 text-destructive",
-  ok:      "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  muted: TONE.muted.chip,
+  info:  TONE.info.chip,
+  warn:  TONE.warn.chip,
+  alert: TONE.alert.chip,
+  ok:    TONE.ok.chip,
 }
 
 export const toneDots: Record<Tone, string> = {
-  muted:   "bg-muted-foreground",
-  primary: "bg-primary",
-  warn:    "bg-amber-500",
-  alert:   "bg-destructive",
-  ok:      "bg-emerald-500",
+  muted: TONE.muted.dot,
+  info:  TONE.info.dot,
+  warn:  TONE.warn.dot,
+  alert: TONE.alert.dot,
+  ok:    TONE.ok.dot,
 }
 
 export const toneBars: Record<Tone, string> = {
-  muted:   "bg-muted-foreground/40",
-  primary: "bg-primary",
-  warn:    "bg-amber-500",
-  alert:   "bg-destructive",
-  ok:      "bg-emerald-500",
+  muted: TONE.muted.bar,
+  info:  TONE.info.bar,
+  warn:  TONE.warn.bar,
+  alert: TONE.alert.bar,
+  ok:    TONE.ok.bar,
 }
 
 // ─── section label / heading ──────────────────────────────────────
@@ -57,6 +60,10 @@ export function SectionLabel({ children, className }: { children: ReactNode; cla
 }
 
 // ─── DataCard — flexible wrapper used by most panels ──────────────
+//
+// Header zone (border-b, px-5 py-3) and body zone (px-5 py-4 by default) are
+// independent: divide-y row patterns can opt out of body padding via
+// `bodyPadding="none"` and still get a properly padded title.
 
 export function DataCard({
   title,
@@ -66,7 +73,8 @@ export function DataCard({
   count,
   children,
   className,
-  contentClassName,
+  bodyPadding = "default",
+  bodyClassName,
 }: {
   title?: string
   description?: ReactNode
@@ -75,15 +83,17 @@ export function DataCard({
   count?: number | string
   children: ReactNode
   className?: string
-  contentClassName?: string
+  bodyPadding?: "default" | "none"
+  bodyClassName?: string
 }) {
+  const hasHeader = Boolean(title || Icon || action || count !== undefined)
   return (
     <Card className={cn("overflow-hidden", className)}>
-      <CardContent className={cn("px-5 py-4", contentClassName)}>
-        {(title || description || Icon || action) && (
-          <div className="mb-3 flex items-center justify-between gap-4">
+      <CardContent className="p-0">
+        {hasHeader && (
+          <div className="flex items-center justify-between gap-4 border-b px-5 py-3">
             <div className="flex min-w-0 flex-1 items-center gap-2">
-              {Icon && <Icon className="size-3.5 shrink-0 text-muted-foreground/60" />}
+              {Icon && <Icon className="size-3.5 shrink-0 text-muted-foreground" />}
               {title && <SectionLabel>{title}</SectionLabel>}
               {count !== undefined && (
                 <span className="font-mono text-xs tabular-nums text-muted-foreground/70">
@@ -95,9 +105,16 @@ export function DataCard({
           </div>
         )}
         {description && (
-          <p className="mb-3 text-sm text-muted-foreground">{description}</p>
+          <p className="px-5 pt-4 text-sm text-muted-foreground">{description}</p>
         )}
-        {children}
+        <div
+          className={cn(
+            bodyPadding === "default" && "px-5 py-4",
+            bodyClassName
+          )}
+        >
+          {children}
+        </div>
       </CardContent>
     </Card>
   )
@@ -212,7 +229,7 @@ export function KpiCard({
         {progress && (
           <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">
             <div
-              className={cn("h-full rounded-full", toneBars[progress.tone ?? "primary"])}
+              className={cn("h-full rounded-full", toneBars[progress.tone ?? "info"])}
               style={{ width: `${Math.min(100, Math.max(0, progress.value))}%` }}
             />
           </div>
@@ -399,7 +416,7 @@ export function ToggleRow({
         <span
           className={cn(
             "inline-block size-3.5 rounded-full bg-white shadow transition-transform",
-            enabled ? "translate-x-[18px]" : "translate-x-1"
+            enabled ? "translate-x-4.5" : "translate-x-1"
           )}
         />
       </span>
@@ -433,7 +450,7 @@ export function ReadValue({
 
 // ─── Sparkline (inline SVG, 60×18) ────────────────────────────────
 
-export function Sparkline({ data, tone = "primary" }: { data: number[]; tone?: Tone }) {
+export function Sparkline({ data, tone = "info" }: { data: number[]; tone?: Tone }) {
   if (!data.length) return null
   const w = 60
   const h = 18
@@ -461,5 +478,63 @@ export function Sparkline({ data, tone = "primary" }: { data: number[]; tone?: T
         points={points}
       />
     </svg>
+  )
+}
+
+// ─── Filter chemistry — matches incidents-toolbar canonical pattern ──
+
+/**
+ * Standard search input used at the top of every admin list page.
+ * Width: 260px on md+, full width on mobile.
+ */
+export function SearchInput({
+  value,
+  onChange,
+  placeholder = "Search…",
+  className,
+  width = "default",
+}: {
+  value?: string
+  onChange?: (next: string) => void
+  placeholder?: string
+  className?: string
+  width?: "default" | "wide" | "full"
+}) {
+  return (
+    <div
+      className={cn(
+        "relative",
+        width === "default" && "w-full md:w-65",
+        width === "wide" && "w-full md:w-80",
+        width === "full" && "w-full",
+        className
+      )}
+    >
+      <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+      <Input
+        placeholder={placeholder}
+        className="h-9 pl-9"
+        value={value}
+        onChange={(e) => onChange?.(e.target.value)}
+      />
+    </div>
+  )
+}
+
+/**
+ * Container for the standard search + filter row at the top of a list page.
+ * Children render as direct flex items (search input, spacers, popover).
+ */
+export function FilterBar({
+  children,
+  className,
+}: {
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <div className={cn("flex flex-wrap items-center gap-2", className)}>
+      {children}
+    </div>
   )
 }

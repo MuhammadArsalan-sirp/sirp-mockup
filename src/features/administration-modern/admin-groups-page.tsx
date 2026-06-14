@@ -3,21 +3,56 @@ import {
   Mail,
   Phone,
   Plus,
-  Search,
   Shield,
   Users,
   type LucideIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { PageHeader } from "@/components/shared/page-header"
 import { cn } from "@/lib/utils"
 import { adminGroups, type AdminGroup } from "@/data/admin"
-import { ToneChip, type Tone } from "./admin-ui"
+import { FilterBar, SearchInput, ToneChip, type Tone } from "./admin-ui"
+import { AdminFiltersPopover, type AdminFilterGroups } from "./admin-filters-popover"
+
+const GROUP_FILTERS: AdminFilterGroups = [
+  [
+    {
+      id: "kind",
+      label: "Kind",
+      icon: Shield,
+      options: [
+        { value: "security",     label: "Security" },
+        { value: "distribution", label: "Distribution" },
+        { value: "on-call",      label: "On-call" },
+      ],
+    },
+    {
+      id: "source",
+      label: "Source",
+      icon: Users,
+      options: [
+        { value: "local",  label: "Local" },
+        { value: "okta",   label: "Okta" },
+        { value: "entra",  label: "Entra ID" },
+        { value: "google", label: "Google Workspace" },
+      ],
+    },
+    {
+      id: "size",
+      label: "Size",
+      icon: Mail,
+      options: [
+        { value: "sm", label: "Small (< 10)" },
+        { value: "md", label: "Medium (10-50)" },
+        { value: "lg", label: "Large (> 50)" },
+      ],
+    },
+  ],
+]
 
 const kindTone: Record<AdminGroup["kind"], Tone> = {
-  Security: "primary", Distribution: "muted", "On-call": "warn",
+  Security: "info", Distribution: "muted", "On-call": "warn",
 }
 
 const kindIcon: Record<AdminGroup["kind"], LucideIcon> = {
@@ -43,14 +78,11 @@ export function AdminGroupsPage() {
         }
       />
 
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative w-70">
-          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search groups…" className="h-9 pl-9" />
-        </div>
-        <Button variant="outline" size="sm" className="h-9">Kind</Button>
-        <Button variant="outline" size="sm" className="h-9">Source</Button>
-      </div>
+      <FilterBar>
+        <SearchInput placeholder="Search groups…" />
+        <div className="flex-1" />
+        <AdminFiltersPopover groups={GROUP_FILTERS} />
+      </FilterBar>
 
       <Card>
         <CardContent className="px-0 py-0">
@@ -73,7 +105,7 @@ export function AdminGroupsPage() {
                       <div className="flex items-start gap-2.5">
                         <Icon className={cn(
                           "mt-0.5 size-3.5 shrink-0",
-                          tone === "primary" && "text-primary",
+                          tone === "info" && "text-primary",
                           tone === "warn" && "text-amber-600 dark:text-amber-400",
                           tone === "muted" && "text-muted-foreground"
                         )} />

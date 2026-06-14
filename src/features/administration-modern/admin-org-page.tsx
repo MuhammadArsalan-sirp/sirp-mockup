@@ -6,18 +6,14 @@ import {
   Lock,
   Mail,
   MapPin,
-  Palette,
   Phone,
   ShieldCheck,
   Trash2,
-  Upload,
   Users,
-  X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
 import {
   Select,
   SelectContent,
@@ -30,7 +26,6 @@ import { cn } from "@/lib/utils"
 
 type SectionId =
   | "general"
-  | "branding"
   | "address"
   | "contacts"
   | "regional"
@@ -42,7 +37,6 @@ const sections: {
   icon: React.ComponentType<{ className?: string }>
 }[] = [
   { id: "general", label: "General", icon: Building },
-  { id: "branding", label: "Branding", icon: Palette },
   { id: "address", label: "Address", icon: MapPin },
   { id: "contacts", label: "Contacts", icon: Users },
   { id: "regional", label: "Regional", icon: Globe },
@@ -51,8 +45,6 @@ const sections: {
 
 export function AdminOrgPage() {
   const [active, setActive] = useState<SectionId>("general")
-  const [signatureOn, setSignatureOn] = useState(true)
-  const [customFromOn, setCustomFromOn] = useState(false)
   const [analytics, setAnalytics] = useState(true)
   const [redactPii, setRedactPii] = useState(true)
 
@@ -181,101 +173,6 @@ export function AdminOrgPage() {
                 </Button>
               </div>
             </Field>
-          </Section>
-
-          {/* Branding */}
-          <Section
-            id="branding"
-            title="Branding"
-            description="Logo, favicon and colours used in emails, reports and the public portal."
-            badge={<Badge className="rounded-full bg-info/15 text-info">Enterprise</Badge>}
-          >
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-              <Field label="Primary logo" hint="SVG preferred. Max 2MB. Used in the sidebar tenant switcher.">
-                <UploadCard
-                  preview={
-                    <div className="grid size-12 shrink-0 place-items-center rounded-lg bg-linear-to-br from-emerald-500 to-teal-600 font-bold text-white">
-                      A
-                    </div>
-                  }
-                  filename="acme-logo.svg"
-                  meta="SVG · 4.2 KB · uploaded 2024-08-12"
-                  buttonLabel="Replace logo"
-                />
-              </Field>
-
-              <Field label="Favicon" hint="PNG or ICO, 32×32 minimum. Shown in browser tabs.">
-                <UploadCard
-                  preview={
-                    <div className="grid size-12 shrink-0 place-items-center rounded-md bg-linear-to-br from-emerald-500 to-teal-600 text-xs font-bold text-white">
-                      A
-                    </div>
-                  }
-                  filename="acme-favicon.png"
-                  meta="PNG · 32×32 · 1.8 KB"
-                  buttonLabel="Replace favicon"
-                />
-              </Field>
-            </div>
-
-            <Field
-              label="Brand colours"
-              hint="Used for buttons, links and status pills throughout the SOC dashboard."
-            >
-              <div className="grid grid-cols-3 gap-3">
-                <ColorSwatch label="Primary" hex="#10B981" color="#10B981" />
-                <ColorSwatch label="Accent" hex="#0D9488" color="#0D9488" />
-                <ColorSwatch label="Highlight" hex="#F59E0B" color="#F59E0B" />
-              </div>
-              <div className="mt-2 flex items-center gap-3 text-xs">
-                <button className="text-primary hover:underline">
-                  Reset to SIRP defaults
-                </button>
-                <span className="text-muted-foreground">·</span>
-                <button className="text-muted-foreground hover:text-foreground">
-                  Preview email theme →
-                </button>
-              </div>
-            </Field>
-
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-              <Field
-                label={
-                  <span className="flex w-full items-center justify-between">
-                    Email signature
-                    <Switch
-                      checked={signatureOn}
-                      onChange={setSignatureOn}
-                      label="Enable email signature"
-                    />
-                  </span>
-                }
-                hint="Appended to all outbound notification emails."
-              >
-                <Textarea
-                  rows={4}
-                  defaultValue={`Acme Corp Security Operations
-soc@acme.com · +44 20 7000 0000
-Confidential — do not forward.`}
-                />
-              </Field>
-
-              <Field
-                label={
-                  <span className="flex w-full items-center justify-between">
-                    Custom email-from name
-                    <Switch
-                      checked={customFromOn}
-                      onChange={setCustomFromOn}
-                      label="Enable custom email-from name"
-                    />
-                  </span>
-                }
-                hint="Requires DNS verification of your sending domain."
-              >
-                <Input defaultValue="Acme SOC" disabled={!customFromOn} />
-              </Field>
-            </div>
           </Section>
 
           {/* Address */}
@@ -436,9 +333,9 @@ Confidential — do not forward.`}
       {/* Save bar */}
       <div className="pointer-events-none fixed inset-x-0 bottom-6 z-40 flex justify-center">
         <div className="pointer-events-auto flex items-center gap-3 rounded-full border bg-popover py-1.5 pr-2 pl-4 text-sm shadow-lg">
-          <span className="size-2 rounded-full bg-attention" />
+          <span className="size-2 rounded-full bg-amber-500" />
           <span>
-            <span className="font-semibold">Unsaved changes</span> in Branding
+            <span className="font-semibold">Unsaved changes</span> in Organisation
           </span>
           <div className="mx-1 h-4 w-px bg-border" />
           <Button variant="ghost" size="sm" className="h-8 rounded-full">
@@ -509,7 +406,7 @@ function Textarea({
   return (
     <textarea
       className={cn(
-        "min-h-[80px] w-full resize-y rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30",
+        "min-h-20 w-full resize-y rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30",
         className
       )}
       {...props}
@@ -539,61 +436,6 @@ function SelectInput({
         ))}
       </SelectContent>
     </Select>
-  )
-}
-
-function UploadCard({
-  preview,
-  filename,
-  meta,
-  buttonLabel,
-}: {
-  preview: React.ReactNode
-  filename: string
-  meta: string
-  buttonLabel: string
-}) {
-  return (
-    <div className="rounded-xl border border-dashed bg-card/50 p-4">
-      <div className="flex items-center gap-3">
-        {preview}
-        <div className="min-w-0 flex-1 text-left">
-          <div className="truncate text-sm font-medium">{filename}</div>
-          <div className="truncate text-xs text-muted-foreground">{meta}</div>
-        </div>
-        <Button variant="ghost" size="icon-sm" aria-label="Remove file">
-          <X className="size-3.5" />
-        </Button>
-      </div>
-      <Button variant="outline" size="sm" className="mt-3 h-8 w-full">
-        <Upload className="size-3.5" />
-        {buttonLabel}
-      </Button>
-    </div>
-  )
-}
-
-function ColorSwatch({
-  label,
-  hex,
-  color,
-}: {
-  label: string
-  hex: string
-  color: string
-}) {
-  return (
-    <div className="space-y-1.5">
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <button className="flex h-9 w-full items-center gap-2.5 rounded-md border bg-background pl-2 pr-3 text-left text-sm transition-colors hover:bg-accent">
-        <span
-          className="size-5 shrink-0 rounded ring-1 ring-inset ring-border"
-          style={{ background: color }}
-        />
-        <span className="font-mono text-xs">{hex}</span>
-        <span className="ml-auto text-muted-foreground">▾</span>
-      </button>
-    </div>
   )
 }
 
@@ -669,7 +511,7 @@ function Switch({
       <span
         className={cn(
           "inline-block size-3.5 rounded-full bg-white shadow transition-transform",
-          checked ? "translate-x-[18px]" : "translate-x-[3px]"
+          checked ? "translate-x-4.5" : "translate-x-0.75"
         )}
       />
     </button>
