@@ -518,11 +518,26 @@ export type AdminLogEvent = {
   /** Optional inline tag rendered as a chip */
   tag?: string
   ip: string
+  /** Structured before/after for config-changing events. Absent for read
+   *  events and most service/system events — the log sheet says so rather
+   *  than fabricating a diff for actions that don't have one. */
+  diff?: { field: string; from: string; to: string }[]
 }
 
 export const adminLogs: AdminLogEvent[] = [
-  { id: "evt_8f9a2c4e1b", time: "14:32:18.412", day: "2026-04-29", severity: "info", logTab: "activity", actor: "sara.patel@acme.com", action: "closed incident", target: "INC-2841", tag: "Resolved · false-positive", ip: "198.51.100.12" },
-  { id: "evt_91ad7f3320", time: "14:31:55.227", day: "2026-04-29", severity: "info", logTab: "activity", actor: "ahmed@sirp.io", action: "updated role SOC Manager — added 4 permissions", ip: "10.0.4.18" },
+  { id: "evt_8f9a2c4e1b", time: "14:32:18.412", day: "2026-04-29", severity: "info", logTab: "activity", actor: "sara.patel@acme.com", action: "closed incident", target: "INC-2841", tag: "Resolved · false-positive", ip: "198.51.100.12",
+    diff: [
+      { field: "status", from: "investigating", to: "resolved" },
+      { field: "disposition", from: "null", to: "false-positive" },
+      { field: "closed_at", from: "null", to: "2026-04-29T14:32:18Z" },
+    ] },
+  { id: "evt_91ad7f3320", time: "14:31:55.227", day: "2026-04-29", severity: "info", logTab: "activity", actor: "ahmed@sirp.io", action: "updated role SOC Manager — added 4 permissions", ip: "10.0.4.18",
+    diff: [
+      { field: "incidents.sla.override", from: "denied", to: "granted" },
+      { field: "cases.export", from: "denied", to: "granted" },
+      { field: "ti.feeds.config", from: "denied", to: "granted" },
+      { field: "sara.agents.edit", from: "denied", to: "granted" },
+    ] },
   { id: "evt_7c4e1aa90b", time: "14:30:12.901", day: "2026-04-29", severity: "warn", logTab: "auth", actor: "a.miller@acme.com", action: "failed login — invalid TOTP, 3rd attempt", ip: "198.51.100.42" },
   { id: "evt_5d62e9fa4a", time: "14:29:48.044", day: "2026-04-29", severity: "info", logTab: "activity", actor: "sara.patel@acme.com", action: "assigned to maria.chen@acme.com", target: "INC-2841", ip: "198.51.100.12" },
   { id: "evt_4a8b1c0e22", time: "14:28:31.755", day: "2026-04-29", severity: "sara", logTab: "activity", actor: "sara.agent", action: "enriched IOC via VirusTotal", target: "198.51.100.42", tag: "VirusTotal", ip: "internal" },
@@ -530,13 +545,21 @@ export const adminLogs: AdminLogEvent[] = [
   { id: "evt_2e84d5bb71", time: "14:24:55.111", day: "2026-04-29", severity: "info", logTab: "activity", actor: "m.lee@acme.com", action: "accepted invite — assigned role", target: "Tier 2 Analyst", ip: "203.0.113.7" },
   { id: "evt_1abf6c4408", time: "14:22:08.560", day: "2026-04-29", severity: "info", logTab: "activity", actor: "lina.okafor@acme.com", action: "created case linking 3 incidents", target: "CASE-0431", ip: "198.51.100.18" },
   { id: "evt_0c93b2eef9", time: "14:18:37.221", day: "2026-04-29", severity: "warn", logTab: "activity", actor: "system", action: "SLA breach imminent — 28 min remaining", target: "INC-2839", ip: "internal" },
-  { id: "evt_9b7a44e0c8", time: "14:15:02.812", day: "2026-04-29", severity: "info", logTab: "activity", actor: "ahmed@sirp.io", action: "rotated SAML signing certificate", ip: "10.0.4.18" },
+  { id: "evt_9b7a44e0c8", time: "14:15:02.812", day: "2026-04-29", severity: "info", logTab: "activity", actor: "ahmed@sirp.io", action: "rotated SAML signing certificate", ip: "10.0.4.18",
+    diff: [
+      { field: "sso.cert_fingerprint", from: "8f:2c:…:a1", to: "3e:91:…:c4" },
+      { field: "sso.cert_expires", from: "2026-05-08", to: "2027-05-08" },
+    ] },
   { id: "evt_88361b29ad", time: "14:12:29.043", day: "2026-04-29", severity: "info", logTab: "activity", actor: "scheduler", action: "backup completed", tag: "2.4 GB · 47s", ip: "internal" },
   { id: "evt_77942df51e", time: "14:10:55.327", day: "2026-04-29", severity: "info", logTab: "activity", actor: "elena.kowalski@acme.com", action: "published advisory — LockBit family activity", target: "TA-2026-041", ip: "198.51.100.51" },
   { id: "evt_661a7780e2", time: "14:08:41.001", day: "2026-04-29", severity: "sara", logTab: "activity", actor: "sara.agent", action: "requested approval — isolate-host on", target: "workstation-emea-441", tag: "isolate-host", ip: "internal" },
   { id: "evt_550fd99313", time: "14:05:12.765", day: "2026-04-29", severity: "info", logTab: "activity", actor: "maria.chen@acme.com", action: "created incident category", target: "Ransomware · LockBit", ip: "198.51.100.34" },
   { id: "evt_44e22a0bcd", time: "14:01:38.482", day: "2026-04-29", severity: "info", logTab: "auth", actor: "ahmed@sirp.io", action: "signed in via SAML", ip: "10.0.4.18" },
-  { id: "evt_33b910fae6", time: "23:58:04.221", day: "2026-04-28", severity: "info", logTab: "activity", actor: "scheduler", action: "tenant switched to Enterprise plan", target: "Acme EMEA", ip: "internal" },
+  { id: "evt_33b910fae6", time: "23:58:04.221", day: "2026-04-28", severity: "info", logTab: "activity", actor: "scheduler", action: "tenant switched to Enterprise plan", target: "Acme EMEA", ip: "internal",
+    diff: [
+      { field: "plan", from: "Team", to: "Enterprise" },
+      { field: "seats", from: "50", to: "250" },
+    ] },
   { id: "evt_pre01", time: "13:55:01.100", day: "2026-04-29", severity: "info", logTab: "preingest", actor: "connector.sentinel", action: "normalised alert batch", target: "1,240 rows", tag: "Microsoft Sentinel", ip: "internal" },
   { id: "evt_pre02", time: "13:40:22.330", day: "2026-04-29", severity: "warn", logTab: "preingest", actor: "connector.qradar", action: "schema validation failed — rows quarantined", target: "3 rows", tag: "CEF", ip: "internal" },
   { id: "evt_pre03", time: "12:08:00.000", day: "2026-04-29", severity: "info", logTab: "preingest", actor: "connector.mimecast", action: "deduplicated phishing events", target: "88 → 41", ip: "internal" },
@@ -591,7 +614,7 @@ export const adminAttention: AdminAttentionItem[] = [
     category: "SSO certificate",
     title: "Expires in 9 days",
     description: "Rotate before 2026-05-08 to avoid SSO disruption.",
-    href: "/admin/sso",
+    href: "/admin-modern/sso",
   },
   {
     id: "a2",
@@ -599,7 +622,7 @@ export const adminAttention: AdminAttentionItem[] = [
     category: "Inactive users",
     title: "7 users inactive ≥ 90 days",
     description: "Review and revoke seats to free up licences.",
-    href: "/admin/users",
+    href: "/admin-modern/users",
   },
   {
     id: "a3",
@@ -607,7 +630,7 @@ export const adminAttention: AdminAttentionItem[] = [
     category: "MFA enrolment",
     title: "18 users without MFA",
     description: "Policy threshold is 95% · currently at 87%.",
-    href: "/admin/users",
+    href: "/admin-modern/users",
   },
   {
     id: "a4",
@@ -615,7 +638,7 @@ export const adminAttention: AdminAttentionItem[] = [
     category: "Pending invites",
     title: "12 invites unaccepted > 7 days",
     description: "Resend or revoke from Users page.",
-    href: "/admin/users",
+    href: "/admin-modern/users",
   },
   {
     id: "a5",
@@ -623,7 +646,7 @@ export const adminAttention: AdminAttentionItem[] = [
     category: "Update available",
     title: "SIRP v3.5.0 ready",
     description: "Schedule a maintenance window to upgrade.",
-    href: "/admin/health",
+    href: "/admin-modern/health",
   },
 ]
 
@@ -681,21 +704,21 @@ export type PostureCheck = {
 }
 
 export const postureChecks: PostureCheck[] = [
-  { id: "p_mfa",      category: "authentication", label: "MFA enrolment",          description: "TOTP or WebAuthn enrolled by every active user.",                    status: "medium", metric: "87%",   cta: { label: "Open Users",     href: "/admin/users"    } },
+  { id: "p_mfa",      category: "authentication", label: "MFA enrolment",          description: "TOTP or WebAuthn enrolled by every active user.",                    status: "medium", metric: "87%",   cta: { label: "Open Users",     href: "/admin-modern/users"    } },
   { id: "p_sso",      category: "authentication", label: "Single sign-on",         description: "SAML or OIDC active. Just-in-time provisioning enabled.",            status: "ok",     metric: "SAML"                                                              },
-  { id: "p_sso_cert", category: "authentication", label: "SSO certificate",        description: "Rotate IdP signing certificate before expiry.",                      status: "high",   metric: "9 days",cta: { label: "Rotate now",     href: "/admin/sso"      } },
-  { id: "p_pwd",      category: "authentication", label: "Password policy",        description: "Min 12 chars, complexity, no last 5 reuse, 90-day rotation.",        status: "ok",     metric: "strong",cta: { label: "Review policy",  href: "/admin/sessions" } },
+  { id: "p_sso_cert", category: "authentication", label: "SSO certificate",        description: "Rotate IdP signing certificate before expiry.",                      status: "high",   metric: "9 days",cta: { label: "Rotate now",     href: "/admin-modern/sso"      } },
+  { id: "p_pwd",      category: "authentication", label: "Password policy",        description: "Min 12 chars, complexity, no last 5 reuse, 90-day rotation.",        status: "ok",     metric: "strong",cta: { label: "Review policy",  href: "/admin-modern/sessions" } },
   { id: "p_session",  category: "session",        label: "Idle session timeout",   description: "Sessions expire after 30 minutes of inactivity.",                   status: "ok",     metric: "30 min"                                                            },
   { id: "p_lockout",  category: "session",        label: "Lockout threshold",      description: "Lock account after 5 failed sign-ins inside 10 minutes.",            status: "ok",     metric: "5 / 10m"                                                           },
-  { id: "p_iprange",  category: "session",        label: "IP allowlist",           description: "Admin actions limited to corporate CIDR ranges.",                    status: "medium", metric: "off",   cta: { label: "Configure",      href: "/admin/sessions" } },
+  { id: "p_iprange",  category: "session",        label: "IP allowlist",           description: "Admin actions limited to corporate CIDR ranges.",                    status: "medium", metric: "off",   cta: { label: "Configure",      href: "/admin-modern/sessions" } },
   { id: "p_retain",   category: "audit",          label: "Audit log retention",    description: "Audit events retained beyond regulator minimum (12 months).",         status: "ok",     metric: "24 mo"                                                             },
-  { id: "p_siem",     category: "audit",          label: "SIEM export",            description: "Audit log streamed to upstream SIEM in real time.",                  status: "low",    metric: "off",   cta: { label: "Enable export",  href: "/admin/logs"     } },
+  { id: "p_siem",     category: "audit",          label: "SIEM export",            description: "Audit log streamed to upstream SIEM in real time.",                  status: "low",    metric: "off",   cta: { label: "Enable export",  href: "/admin-modern/logs"     } },
   { id: "p_encrypt",  category: "data",           label: "Encryption at rest",     description: "Tenant volumes encrypted with KMS-managed CMK.",                     status: "ok",     metric: "AES-256"                                                           },
-  { id: "p_backup",   category: "data",           label: "Backup completion",      description: "Most recent scheduled backup completed inside SLA.",                  status: "ok",     metric: "12m ago",cta:{ label: "View backups",   href: "/admin/backup"   } },
+  { id: "p_backup",   category: "data",           label: "Backup completion",      description: "Most recent scheduled backup completed inside SLA.",                  status: "ok",     metric: "12m ago",cta:{ label: "View backups",   href: "/admin-modern/backup"   } },
   { id: "p_residency",category: "data",           label: "KSA data residency",     description: "Customer data routed to in-region storage and inference.",           status: "ok",     metric: "KSA"                                                               },
-  { id: "p_health",   category: "operations",     label: "Service health",         description: "All critical subsystems reporting healthy in the last 5 minutes.",   status: "medium", metric: "1 warn",cta: { label: "Open health",    href: "/admin/health"   } },
-  { id: "p_invites",  category: "operations",     label: "Stale invites",          description: "Pending invites older than 7 days should be revoked or resent.",     status: "low",    metric: "8",     cta: { label: "Resolve",        href: "/admin/users"    } },
-  { id: "p_inactive", category: "operations",     label: "Dormant accounts",       description: "Users inactive ≥ 90 days reviewed and de-provisioned.",              status: "medium", metric: "7",     cta: { label: "Review",         href: "/admin/users"    } },
+  { id: "p_health",   category: "operations",     label: "Service health",         description: "All critical subsystems reporting healthy in the last 5 minutes.",   status: "medium", metric: "1 warn",cta: { label: "Open health",    href: "/admin-modern/health"   } },
+  { id: "p_invites",  category: "operations",     label: "Stale invites",          description: "Pending invites older than 7 days should be revoked or resent.",     status: "low",    metric: "8",     cta: { label: "Resolve",        href: "/admin-modern/users"    } },
+  { id: "p_inactive", category: "operations",     label: "Dormant accounts",       description: "Users inactive ≥ 90 days reviewed and de-provisioned.",              status: "medium", metric: "7",     cta: { label: "Review",         href: "/admin-modern/users"    } },
 ]
 
 export type PostureScoreBand = "excellent" | "good" | "fair" | "needs-work"

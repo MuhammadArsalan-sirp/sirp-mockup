@@ -91,8 +91,8 @@ export function AdminLogSheet({ event, open, onOpenChange }: Props) {
             <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               Action
             </div>
-            <div className="mt-1 font-mono text-base font-semibold">
-              incident.closed
+            <div className="mt-1 text-base font-semibold capitalize">
+              {event.action}
             </div>
           </div>
 
@@ -137,7 +137,7 @@ export function AdminLogSheet({ event, open, onOpenChange }: Props) {
                 </div>
               </div>
               <a
-                href="/admin/users"
+                href="/admin-modern/users"
                 className="whitespace-nowrap text-xs text-primary hover:underline"
               >
                 View →
@@ -178,18 +178,21 @@ export function AdminLogSheet({ event, open, onOpenChange }: Props) {
           <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             Changes
           </div>
-          <div className="rounded-md border-l-2 border-destructive bg-destructive/10 p-2.5 font-mono text-xs">
-            <span className="text-muted-foreground">status:</span> "investigating"{" "}
-            <span className="text-muted-foreground">→</span> "resolved"
-          </div>
-          <div className="rounded-md border-l-2 border-emerald-500 bg-emerald-500/10 p-2.5 font-mono text-xs">
-            <span className="text-muted-foreground">disposition:</span> null{" "}
-            <span className="text-muted-foreground">→</span> "false-positive"
-          </div>
-          <div className="rounded-md border-l-2 border-emerald-500 bg-emerald-500/10 p-2.5 font-mono text-xs">
-            <span className="text-muted-foreground">closed_at:</span> null{" "}
-            <span className="text-muted-foreground">→</span> "2026-04-29T14:32:18Z"
-          </div>
+          {event.diff && event.diff.length > 0 ? (
+            event.diff.map((d) => (
+              <div
+                key={d.field}
+                className="rounded-md border-l-2 border-emerald-500 bg-emerald-500/10 p-2.5 font-mono text-xs"
+              >
+                <span className="text-muted-foreground">{d.field}:</span> {d.from}{" "}
+                <span className="text-muted-foreground">→</span> {d.to}
+              </div>
+            ))
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              No structured before/after captured for this event type.
+            </p>
+          )}
         </div>
 
         {/* Raw JSON */}
@@ -206,14 +209,13 @@ export function AdminLogSheet({ event, open, onOpenChange }: Props) {
           <pre className="overflow-x-auto whitespace-pre rounded-md bg-muted p-3 font-mono text-xs leading-relaxed">
 {`"id": "${event.id}",
 "timestamp": "${event.day}T${event.time}Z",
-"action": "incident.closed",
+"action": "${event.action}",
 "actor": {
   "id": "u_4f8a92c1",
   "email": "${event.actor}",
   "role": "soc_manager"
 },
 "target": {
-  "type": "incident",
   "id": "${event.target ?? "—"}",
   "tenant": "acme_emea"
 },

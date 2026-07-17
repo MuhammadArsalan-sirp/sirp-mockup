@@ -19,7 +19,7 @@ export function AdminMobileNav() {
   const navigate = useNavigate()
   const flat = flattenAdminNavForSelect()
 
-  const value = flat.some((e) => e.value === pathname) ? pathname : "/admin"
+  const value = flat.some((e) => e.value === pathname) ? pathname : "/admin-modern"
 
   return (
     <div className="mb-5 space-y-2 lg:hidden">

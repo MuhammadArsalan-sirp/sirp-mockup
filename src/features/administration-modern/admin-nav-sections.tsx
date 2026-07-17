@@ -22,6 +22,7 @@ import {
   Timer,
   Users,
   Users2,
+  Workflow,
   type LucideIcon,
 } from "lucide-react"
 
@@ -56,11 +57,11 @@ export const adminGroups: AdminNavGroup[] = [
     icon: Building,
     blurb: "Tenant identity, branding, departments, sub-tenants, and license.",
     items: [
-      { to: "/admin/org",         label: "Organisation",     icon: Building2,  hint: "Profile, address, contacts, regional defaults" },
-      { to: "/admin/branding",    label: "Branding & theme", icon: Palette,    hint: "Logo, favicon, brand colours, email signature" },
-      { to: "/admin/departments", label: "Departments",      icon: Network,    hint: "Hierarchy and reporting lines" },
-      { to: "/admin/tenants",     label: "Tenants",          icon: Globe,      meta: "3", hint: "Child tenants and data residency" },
-      { to: "/admin/license",     label: "License & seats",  icon: CreditCard, hint: "Plan, renewal date, invoices" },
+      { to: "/admin-modern/org",         label: "Organisation",     icon: Building2,  hint: "Profile, address, contacts, regional defaults" },
+      { to: "/admin-modern/branding",    label: "Branding & theme", icon: Palette,    hint: "Logo, favicon, brand colours, email signature" },
+      { to: "/admin-modern/departments", label: "Departments",      icon: Network,    hint: "Hierarchy and reporting lines" },
+      { to: "/admin-modern/tenants",     label: "Tenants",          icon: Globe,      meta: "3", hint: "Child tenants and data residency" },
+      { to: "/admin-modern/license",     label: "License & seats",  icon: CreditCard, hint: "Plan, renewal date, invoices" },
     ],
   },
   {
@@ -69,12 +70,12 @@ export const adminGroups: AdminNavGroup[] = [
     icon: KeyRound,
     blurb: "Users, groups, roles, SSO, session policy, MFA, and posture.",
     items: [
-      { to: "/admin/users",    label: "Users",               icon: Users,       meta: "142", hint: "Members, invites, seats" },
-      { to: "/admin/groups",   label: "Groups & teams",      icon: Users2,      meta: "5",   hint: "Security and on-call rosters" },
-      { to: "/admin/roles",    label: "Roles & permissions", icon: ShieldCheck, meta: "12",  hint: "Bundle permissions into roles" },
-      { to: "/admin/sso",      label: "SSO & SAML",          icon: KeyRound,    hint: "Okta, Entra, Google Workspace" },
-      { to: "/admin/sessions", label: "Session policy",      icon: Timer,       hint: "Timeouts, MFA, password rules, IP allowlist" },
-      { to: "/admin/posture",  label: "Security posture",    icon: Shield,      hint: "Identity hygiene checks and remediation" },
+      { to: "/admin-modern/users",    label: "Users",               icon: Users,       meta: "142", hint: "Members, invites, seats" },
+      { to: "/admin-modern/groups",   label: "Groups & teams",      icon: Users2,      meta: "5",   hint: "Security and on-call rosters" },
+      { to: "/admin-modern/roles",    label: "Roles & permissions", icon: ShieldCheck, meta: "12",  hint: "Bundle permissions into roles" },
+      { to: "/admin-modern/sso",      label: "SSO & SAML",          icon: KeyRound,    hint: "Okta, Entra, Google Workspace" },
+      { to: "/admin-modern/sessions", label: "Session policy",      icon: Timer,       hint: "Timeouts, MFA, password rules, IP allowlist" },
+      { to: "/admin-modern/posture",  label: "Security posture",    icon: Shield,      hint: "Identity hygiene checks and remediation" },
     ],
   },
   {
@@ -83,9 +84,18 @@ export const adminGroups: AdminNavGroup[] = [
     icon: Boxes,
     blurb: "Per-module taxonomy, workflow states, SLAs, custom fields, and feeds.",
     items: [
-      { to: "/admin/products/incidents",    label: "Incidents",         icon: AlertTriangle, hint: "Categories, states, SLAs, custom fields, locations" },
-      { to: "/admin/products/threat-intel", label: "Threat intelligence", icon: Shield,        hint: "Categories, states, sources, feeds" },
-      { to: "/admin/products/entities",     label: "Entities",           icon: Database,      hint: "Asset types, classifications, groups, owners" },
+      { to: "/admin-modern/products/incidents",    label: "Incidents",         icon: AlertTriangle, hint: "Categories, states, SLAs, custom fields, locations" },
+      { to: "/admin-modern/products/threat-intel", label: "Threat intelligence", icon: Shield,        hint: "Categories, states, sources, feeds" },
+      { to: "/admin-modern/products/entities",     label: "Entities",           icon: Database,      hint: "Asset types, classifications, groups, owners" },
+    ],
+  },
+  {
+    id: "automation",
+    label: "Automation",
+    icon: Workflow,
+    blurb: "Vendor integrations, actions, and how incoming alerts route to a case.",
+    items: [
+      { to: "/admin-modern/automation", label: "Pipelines", icon: Workflow, meta: "5", hint: "Vendors, applications, actions, ingestion rules" },
     ],
   },
   {
@@ -94,11 +104,11 @@ export const adminGroups: AdminNavGroup[] = [
     icon: Layers,
     blurb: "Health, backups, email, notification templates, and audit logs.",
     items: [
-      { to: "/admin/health",    label: "Service health",         icon: Activity,      hint: "Subsystems, uptime, latency" },
-      { to: "/admin/backup",    label: "Backup & restore",       icon: RefreshCw,     hint: "Snapshots, retention, SFTP destinations" },
-      { to: "/admin/email",     label: "Email & SMTP",           icon: Mail,          hint: "Outbound SMTP, deliverability" },
-      { to: "/admin/templates", label: "Notification templates", icon: FileText,      hint: "Email, SMS, webhook, Slack copy" },
-      { to: "/admin/logs",      label: "Activity logs",          icon: ClipboardList, hint: "Audit trail across the workspace" },
+      { to: "/admin-modern/health",    label: "Service health",         icon: Activity,      hint: "Subsystems, uptime, latency" },
+      { to: "/admin-modern/backup",    label: "Backup & restore",       icon: RefreshCw,     hint: "Snapshots, retention, SFTP destinations" },
+      { to: "/admin-modern/email",     label: "Email & SMTP",           icon: Mail,          hint: "Outbound SMTP, deliverability" },
+      { to: "/admin-modern/templates", label: "Notification templates", icon: FileText,      hint: "Email, SMS, webhook, Slack copy" },
+      { to: "/admin-modern/logs",      label: "Activity logs",          icon: ClipboardList, hint: "Audit trail across the workspace" },
     ],
   },
 ]
@@ -110,7 +120,7 @@ export function flattenAdminNavForSelect(): {
   section?: string
 }[] {
   const out: { value: string; label: string; section?: string }[] = [
-    { value: "/admin", label: "Overview" },
+    { value: "/admin-modern", label: "Overview" },
   ]
   for (const group of adminGroups) {
     for (const item of group.items) {
@@ -145,4 +155,5 @@ export const adminIconRegistry = {
   Timer,
   Users,
   Users2,
+  Workflow,
 } as const

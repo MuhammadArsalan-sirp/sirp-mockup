@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import {
   AlertTriangle,
   Building,
@@ -31,6 +31,7 @@ import {
 } from "@/data/admin"
 import { FilterBar, SearchInput } from "./admin-ui"
 import { AdminFiltersPopover, type AdminFilterGroups } from "./admin-filters-popover"
+import { AdminRolesMatrix } from "./admin-roles-matrix"
 
 const PERMISSION_FILTERS: AdminFilterGroups = [
   [
@@ -82,6 +83,7 @@ const groupIcons: Record<string, LucideIcon> = {
 }
 
 export function AdminRolesPage() {
+  const [view, setView] = useState<"detail" | "matrix">("detail")
   const [activeRoleId, setActiveRoleId] = useState("r_soc_mgr")
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
     new Set(["config", "system", "audit"])
@@ -103,8 +105,30 @@ export function AdminRolesPage() {
       <PageHeader
         title="Roles & Permissions"
         description="Bundle granular permissions into reusable roles. System roles are managed by SIRP; custom roles are yours to shape."
+        actions={
+          <div className="flex items-center gap-0.5 rounded-lg border bg-muted/30 p-0.5">
+            <ViewToggleButton active={view === "detail"} onClick={() => setView("detail")}>
+              Detail
+            </ViewToggleButton>
+            <ViewToggleButton active={view === "matrix"} onClick={() => setView("matrix")}>
+              Matrix
+            </ViewToggleButton>
+          </div>
+        }
       />
 
+      {view === "matrix" && (
+        <div>
+          <p className="mb-3 text-sm text-muted-foreground">
+            Every role against every module, at a glance — the comparison you can't get from
+            opening twelve roles one at a time.
+          </p>
+          <AdminRolesMatrix />
+        </div>
+      )}
+
+      {view === "detail" && (
+      <>
       {/* Two-pane: roles list + role detail */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
         {/* Roles list */}
@@ -229,7 +253,33 @@ export function AdminRolesPage() {
 
       {/* Sticky save bar */}
       <SaveBar />
+      </>
+      )}
     </div>
+  )
+}
+
+function ViewToggleButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  children: ReactNode
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+        active
+          ? "bg-card text-foreground shadow-sm"
+          : "text-muted-foreground hover:text-foreground"
+      )}
+    >
+      {children}
+    </button>
   )
 }
 

@@ -9,6 +9,7 @@ import {
   KeyRound,
   RefreshCw,
   Shield,
+  Sparkles,
   Timer,
   Users,
   type LucideIcon,
@@ -24,6 +25,8 @@ import {
   type PostureCheck,
   type PostureSeverity,
 } from "@/data/admin"
+import { saraFindings } from "@/data/admin-sara"
+import { SaraDiffCard } from "./admin-sara-diff-card"
 import {
   SectionLabel,
   ToneChip,
@@ -95,6 +98,25 @@ export function AdminPosturePage() {
           </>
         }
       />
+
+      {/* Sara's proactive read of this checklist — same findings the admin
+          dock surfaces, just contextual to the page they're about. */}
+      <div className="rounded-xl border bg-linear-to-b from-primary/[0.03] to-transparent">
+        <div className="flex items-center gap-2 border-b px-4 py-3">
+          <span className="grid size-6 shrink-0 place-items-center rounded-md bg-linear-to-br from-primary to-chart-3 text-white">
+            <Sparkles className="size-3.5" />
+          </span>
+          <p className="text-sm font-medium">Sara reviewed this checklist</p>
+          <span className="ml-auto font-mono text-xs tabular-nums text-muted-foreground">
+            {saraFindings.length} suggestions
+          </span>
+        </div>
+        <div className="grid grid-cols-1 gap-3 p-4 lg:grid-cols-2">
+          {saraFindings.map((f) => (
+            <SaraDiffCard key={f.id} finding={f} compact />
+          ))}
+        </div>
+      </div>
 
       {/* Score row */}
       <Card>

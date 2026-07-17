@@ -2,6 +2,7 @@ import { Outlet, useLocation } from "react-router"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "./app-sidebar"
 import { Topbar } from "./topbar"
+import { CommandPalette } from "./command-palette"
 import { usePreferences } from "@/stores/preferences"
 import { cn } from "@/lib/utils"
 
@@ -37,6 +38,7 @@ export function AppShell() {
       style={{ "--sidebar-width": "17rem" } as React.CSSProperties}
     >
       <AppSidebar variant={sidebarVariant} collapsible={sidebarCollapsible} />
+      <CommandPalette />
       {/* min-w-0 is critical: without it, flex children default to
           min-width:auto (= content width). A wide inner table with
           min-width set would push the entire page into horizontal

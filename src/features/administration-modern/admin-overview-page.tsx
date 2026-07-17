@@ -130,7 +130,7 @@ export function AdminOverviewPage() {
           caption={
             <span className="inline-flex items-center gap-1.5">
               <ToneChip tone={bandTone} className="capitalize">{posture.band.replace("-", " ")}</ToneChip>
-              <Link to="/admin/posture" className="text-primary hover:underline">
+              <Link to="/admin-modern/posture" className="text-primary hover:underline">
                 Review
               </Link>
             </span>
@@ -191,7 +191,7 @@ export function AdminOverviewPage() {
           icon={CheckCircle2}
           action={
             <Link
-              to="/admin/health"
+              to="/admin-modern/health"
               className="text-xs text-muted-foreground hover:text-foreground"
             >
               Details →
@@ -228,7 +228,7 @@ export function AdminOverviewPage() {
         bodyPadding="none"
         action={
           <Link
-            to="/admin/logs"
+            to="/admin-modern/logs"
             className="text-xs text-muted-foreground hover:text-foreground"
           >
             View all logs →
