@@ -1,7 +1,8 @@
-import { FileText } from "lucide-react"
+import { FileText, Sparkles } from "lucide-react"
 import { PageHeader } from "@/components/shared/page-header"
 import { Button } from "@/components/ui/button"
 import { moduleLabels, reportTemplates, reports } from "@/data/reports"
+import { CUSTOM_TEMPLATE_ID } from "../components/create-report-wizard"
 import { ReportsTable } from "../components/reports-table"
 import { useReportDialogs } from "../components/use-report-dialogs"
 
@@ -38,6 +39,26 @@ export function TemplatesTab() {
             </Button>
           </div>
         ))}
+
+        <div className="relative flex flex-col overflow-hidden rounded-xl border border-dashed border-primary/40 bg-linear-to-t from-primary/5 to-card p-5">
+          <div className="grid size-9 place-items-center rounded-lg bg-linear-to-br from-primary to-primary/70 text-primary-foreground">
+            <Sparkles className="size-4" />
+          </div>
+          <div className="mt-3 text-sm font-semibold leading-tight">Build your own</div>
+          <p className="mt-1 flex-1 text-xs text-muted-foreground">
+            Start from a blank canvas — pick any module, choose your own widgets, and order them your way.
+          </p>
+          <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
+            <span>Fully customizable</span>
+          </div>
+          <Button
+            size="sm"
+            className="mt-3 h-8 text-xs"
+            onClick={() => openCreate(CUSTOM_TEMPLATE_ID)}
+          >
+            Start from scratch
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-3">

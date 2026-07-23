@@ -7,7 +7,10 @@ import {
   Check,
   FileSpreadsheet,
   FileText,
+  Plus,
   Sparkles,
+  Wand2,
+  X,
 } from "lucide-react"
 import {
   Dialog,
@@ -22,7 +25,16 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
+
+/** Sentinel `templateId` meaning "skip the preset gallery, build sections from a blank canvas." */
+export const CUSTOM_TEMPLATE_ID = "custom"
 import {
   coverPages,
   moduleLabels,
@@ -148,16 +160,30 @@ export function CreateReportWizard({
     setSections((prev) => prev.map((s, i) => (i === index ? { ...s, included: !s.included } : s)))
   }
 
+  function addWidget(widgetId: string) {
+    setSections((prev) => (prev.some((s) => s.widgetId === widgetId) ? prev : [...prev, { widgetId, included: true }]))
+  }
+
+  function removeSection(index: number) {
+    setSections((prev) => prev.filter((_, i) => i !== index))
+  }
+
   function handleSubmit() {
     setSubmitted(true)
     setTimeout(() => handleOpenChange(false), 900)
   }
 
+  // "Build your own" enters with templateId === CUSTOM_TEMPLATE_ID — it never
+  // matches a gallery entry, so it skips the required-template gate below and
+  // starts from an empty section list the user fills in on step 2.
+  const isCustomFlow = templateId === CUSTOM_TEMPLATE_ID
+
   // Only require picking a gallery template when creating fresh — an
   // existing report already has its sections/branding configured and has
   // no `templateId` of its own to match against.
-  const canAdvanceStep1 = !isEdit && archetype === "template" ? !!templateId : true
+  const canAdvanceStep1 = !isEdit && archetype === "template" ? isCustomFlow || !!templateId : true
   const canAdvanceStep2 = name.trim().length > 0
+  const availableWidgets = reportWidgetCatalog.filter((w) => !sections.some((s) => s.widgetId === w.id))
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -290,25 +316,53 @@ export function CreateReportWizard({
                     <Label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                       Template
                     </Label>
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                      {reportTemplates.map((t) => (
+                    {isCustomFlow ? (
+                      <div className="flex items-center gap-3 rounded-lg border border-dashed border-primary/40 bg-primary/5 p-3">
+                        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-linear-to-br from-primary to-primary/70 text-primary-foreground">
+                          <Wand2 className="size-4" />
+                        </span>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">Building from scratch</div>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            No preset applied — you'll add your own widgets on the next step.
+                          </p>
+                        </div>
+                        <Button size="sm" variant="ghost" className="h-7 shrink-0 text-xs" onClick={() => setTemplateId(undefined)}>
+                          Browse templates
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        {reportTemplates.map((t) => (
+                          <button
+                            key={t.id}
+                            type="button"
+                            onClick={() => applyTemplate(t.id)}
+                            className={cn(
+                              "rounded-lg border p-3 text-left transition-colors",
+                              templateId === t.id ? "border-primary/40 bg-primary/5" : "hover:bg-accent"
+                            )}
+                          >
+                            <div className="text-sm font-medium">{t.name}</div>
+                            <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{t.description}</p>
+                            <div className="mt-1.5 text-[11px] text-muted-foreground">
+                              {t.widgetIds.length} widgets · {moduleLabels[t.module]}
+                            </div>
+                          </button>
+                        ))}
                         <button
-                          key={t.id}
                           type="button"
-                          onClick={() => applyTemplate(t.id)}
-                          className={cn(
-                            "rounded-lg border p-3 text-left transition-colors",
-                            templateId === t.id ? "border-primary/40 bg-primary/5" : "hover:bg-accent"
-                          )}
+                          onClick={() => setTemplateId(CUSTOM_TEMPLATE_ID)}
+                          className="flex items-center gap-2 rounded-lg border border-dashed p-3 text-left text-muted-foreground transition-colors hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
                         >
-                          <div className="text-sm font-medium">{t.name}</div>
-                          <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{t.description}</p>
-                          <div className="mt-1.5 text-[11px] text-muted-foreground">
-                            {t.widgetIds.length} widgets · {moduleLabels[t.module]}
+                          <Sparkles className="size-4 shrink-0" />
+                          <div>
+                            <div className="text-sm font-medium">Build your own</div>
+                            <p className="mt-0.5 text-xs">Skip the presets, pick your own widgets</p>
                           </div>
                         </button>
-                      ))}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -391,9 +445,34 @@ export function CreateReportWizard({
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                        Sections
-                      </Label>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                          Sections
+                        </Label>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs"
+                              disabled={availableWidgets.length === 0}
+                            >
+                              <Plus className="size-3.5" />
+                              Add widget
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-56">
+                            {availableWidgets.map((w) => (
+                              <DropdownMenuItem key={w.id} onClick={() => addWidget(w.id)}>
+                                <span className="flex-1">{w.title}</span>
+                                <Badge variant="secondary" className="font-normal text-[10px] capitalize">
+                                  {w.type}
+                                </Badge>
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                       <div className="divide-y rounded-lg border">
                         {sections.map((s, i) => {
                           const widget = reportWidgetCatalog.find((w) => w.id === s.widgetId)
@@ -423,13 +502,20 @@ export function CreateReportWizard({
                                 >
                                   <ArrowDown className="size-3" />
                                 </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon-xs"
+                                  onClick={() => removeSection(i)}
+                                >
+                                  <X className="size-3" />
+                                </Button>
                               </div>
                             </div>
                           )
                         })}
                         {sections.length === 0 && (
                           <div className="px-3 py-6 text-center text-sm text-muted-foreground">
-                            Pick a template on the previous step to populate sections.
+                            No sections yet — add a widget above to start building.
                           </div>
                         )}
                       </div>
