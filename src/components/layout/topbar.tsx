@@ -40,6 +40,7 @@ const adminModernSegments: Record<string, string> = {
   "products/incidents": "Incidents",
   "products/threat-intel": "Threat intelligence",
   "products/entities": "Entities",
+  "sara-queue": "Sara's approval queue",
 }
 
 /**

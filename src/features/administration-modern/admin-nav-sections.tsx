@@ -4,6 +4,7 @@ import {
   Boxes,
   Building,
   Building2,
+  ClipboardCheck,
   ClipboardList,
   CreditCard,
   Database,
@@ -18,6 +19,7 @@ import {
   ScrollText,
   Shield,
   ShieldCheck,
+  Sparkles,
   Tag,
   Timer,
   Users,
@@ -51,6 +53,15 @@ export type AdminNavGroup = {
  * its taxonomy sub-tabs so the rail stays flat.
  */
 export const adminGroups: AdminNavGroup[] = [
+  {
+    id: "sara",
+    label: "Sara operator",
+    icon: Sparkles,
+    blurb: "What Sara found, what she can do herself, and what needs your say-so.",
+    items: [
+      { to: "/admin-modern/sara-queue", label: "Approval queue", icon: ClipboardCheck, meta: "2", hint: "Findings that need a human decision before they apply" },
+    ],
+  },
   {
     id: "workspace",
     label: "Workspace",
@@ -137,6 +148,7 @@ export const adminIconRegistry = {
   Boxes,
   Building,
   Building2,
+  ClipboardCheck,
   ClipboardList,
   CreditCard,
   Database,
@@ -151,6 +163,7 @@ export const adminIconRegistry = {
   ScrollText,
   Shield,
   ShieldCheck,
+  Sparkles,
   Tag,
   Timer,
   Users,

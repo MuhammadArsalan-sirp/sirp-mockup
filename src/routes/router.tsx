@@ -57,6 +57,7 @@ import { AdminThreatIntelSetupPage } from "@/features/administration-modern/admi
 import { AdminEntitiesSetupPage } from "@/features/administration-modern/admin-entities-setup-page"
 import { AdminBrandingPage } from "@/features/administration-modern/admin-branding-page"
 import { AdminAutomationPage } from "@/features/administration-modern/admin-automation-page"
+import { AdminSaraQueuePage } from "@/features/administration-modern/admin-sara-queue-page"
 // New (old-SIRP-aligned) administration module.
 import { AdminLayout as NewAdminLayout } from "@/features/administration/admin-layout"
 import { AdminOverviewPage as NewAdminOverviewPage } from "@/features/administration/admin-overview-page"
@@ -186,6 +187,8 @@ export const router = createBrowserRouter([
           { path: "products/entities",     element: <AdminEntitiesSetupPage /> },
           // Automation
           { path: "automation", element: <AdminAutomationPage /> },
+          // Sara operator
+          { path: "sara-queue", element: <AdminSaraQueuePage /> },
           // Platform
           { path: "health", element: <AdminHealthPage /> },
           { path: "backup", element: <AdminBackupPage /> },
