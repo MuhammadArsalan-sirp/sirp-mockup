@@ -7,6 +7,7 @@ import {
   Sparkles,
   Table2,
 } from "lucide-react"
+import { useNavigate } from "react-router"
 import { cn } from "@/lib/utils"
 import { PageHeader } from "@/components/shared/page-header"
 import { Button } from "@/components/ui/button"
@@ -17,7 +18,6 @@ import {
   reports,
   type ReportWidgetType,
 } from "@/data/reports"
-import { CUSTOM_TEMPLATE_ID } from "../components/create-report-wizard"
 import { ReportsTable } from "../components/reports-table"
 import { useReportDialogs } from "../components/use-report-dialogs"
 
@@ -35,15 +35,18 @@ const MAX_GLYPHS = 4
 /**
  * Gallery of starter layouts — the "Report Templates" archetype from the
  * redesign proposal's Split Product Archetypes recommendation. The gallery
- * listing itself is new (faiz-dev's GET /report/templates was orphaned);
- * "Use template" launches the same real create flow as "New report".
+ * listing itself is new (faiz-dev's GET /report/templates was orphaned).
+ * Picking a card (or "Build your own") opens the full-screen Report Studio
+ * block editor pre-seeded from that template, rather than the smaller
+ * step-by-step wizard used elsewhere in Reports.
  *
  * Cards read as a stacked "contents preview" (each widget's chart-type icon,
  * avatar-stack style) rather than a paragraph of prose — denser, and it
  * shows what's inside the report instead of describing it.
  */
 export function TemplatesTab() {
-  const { handlers, openCreate, dialogs } = useReportDialogs()
+  const navigate = useNavigate()
+  const { handlers, dialogs } = useReportDialogs()
   const templateReports = reports.filter((r) => r.archetype === "template")
 
   return (
@@ -65,7 +68,7 @@ export function TemplatesTab() {
             </p>
           </div>
         </div>
-        <Button size="sm" className="shrink-0" onClick={() => openCreate(CUSTOM_TEMPLATE_ID)}>
+        <Button size="sm" className="shrink-0" onClick={() => navigate("/reports/studio", { state: {} })}>
           Start from scratch
         </Button>
       </div>
@@ -83,7 +86,7 @@ export function TemplatesTab() {
                 key={t.id}
                 type="button"
                 title={t.description}
-                onClick={() => openCreate(t.id)}
+                onClick={() => navigate("/reports/studio", { state: { templateId: t.id } })}
                 className={cn(
                   "group flex flex-col items-start gap-2.5 rounded-xl border bg-card p-3.5 text-left transition-colors",
                   "hover:border-primary/40 hover:bg-primary/5"
