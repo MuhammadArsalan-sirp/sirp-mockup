@@ -84,7 +84,17 @@ export function AdminThreatIntelSetupPage() {
                   const tone = statusTone[f.status]
                   return (
                     <tr key={f.id} className="hover:bg-accent/40">
-                      <td className="px-5 py-2.5 font-medium">{f.name}</td>
+                      <td className="px-5 py-2.5 font-medium">
+                        <span className="inline-flex items-center gap-2">
+                          {f.status === "active" && (
+                            <span className="relative flex size-1.5 shrink-0">
+                              <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+                              <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
+                            </span>
+                          )}
+                          {f.name}
+                        </span>
+                      </td>
                       <td className="px-5 py-2.5 text-muted-foreground">{f.vendor}</td>
                       <td className="px-5 py-2.5">
                         <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px]">{f.protocol}</code>

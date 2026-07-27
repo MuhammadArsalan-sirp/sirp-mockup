@@ -9,14 +9,48 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { PageHeader } from "@/components/shared/page-header"
-import { backupConfig, backupJobs, type BackupJob } from "@/data/admin"
+import { backupConfig, backupHistory, backupJobs, type BackupJob } from "@/data/admin"
+import { cn } from "@/lib/utils"
 import {
   DataCard,
   FormRow,
   ReadValue,
+  SectionLabel,
   ToneChip,
   type Tone,
 } from "./admin-ui"
+
+function BackupHeatmap() {
+  const failedCount = backupHistory.filter((d) => d.status === "failed").length
+  return (
+    <Card>
+      <CardContent className="px-5 py-4">
+        <div className="flex items-center justify-between">
+          <SectionLabel>Backup history · last 9 weeks</SectionLabel>
+          <span className="font-mono text-[11px] text-muted-foreground">
+            {backupHistory.length - failedCount}/{backupHistory.length} succeeded
+          </span>
+        </div>
+        <div className="mt-3 grid grid-flow-col grid-rows-7 gap-1">
+          {backupHistory.map((d) => (
+            <span
+              key={d.date}
+              title={`${d.date} · ${d.status === "success" ? "Backup succeeded" : "Backup failed"}`}
+              className={cn(
+                "size-3 rounded-[3px]",
+                d.status === "success" ? "bg-emerald-500/70" : "bg-destructive"
+              )}
+            />
+          ))}
+        </div>
+        <div className="mt-2 flex items-center gap-3 text-[11px] text-muted-foreground">
+          <span className="inline-flex items-center gap-1"><span className="size-2.5 rounded-[2px] bg-emerald-500/70" /> Success</span>
+          <span className="inline-flex items-center gap-1"><span className="size-2.5 rounded-[2px] bg-destructive" /> Failed</span>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
 
 const statusTone: Record<BackupJob["status"], Tone> = {
   success: "ok", running: "info", failed: "alert",
@@ -68,6 +102,8 @@ export function AdminBackupPage() {
         </FormRow>
         <FormRow label="Last restore drill"><ReadValue>{backupConfig.lastRestoreTest}</ReadValue></FormRow>
       </DataCard>
+
+      <BackupHeatmap />
 
       <Card>
         <CardContent className="px-0 py-0">

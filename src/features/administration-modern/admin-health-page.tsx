@@ -1,4 +1,4 @@
-import { Activity, RefreshCw } from "lucide-react"
+import { Activity, Cpu, Database, Rss, RefreshCw, type LucideIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { PageHeader } from "@/components/shared/page-header"
@@ -10,11 +10,13 @@ import {
 } from "@/data/admin"
 import {
   DataCard,
+  SectionLabel,
   Sparkline,
   StatusDot,
   ToneChip,
   type Tone,
 } from "./admin-ui"
+import "./pipeline-flow.css"
 
 const statusTone: Record<HealthSubsystem["status"], Tone> = {
   ok: "ok", warn: "warn", err: "alert",
@@ -26,6 +28,75 @@ const statusLabel: Record<HealthSubsystem["status"], string> = {
 
 const groupLabel: Record<HealthSubsystem["group"], string> = {
   core: "Core", data: "Data", ingest: "Ingestion", ai: "AI engines",
+}
+
+const groupIcon: Record<HealthSubsystem["group"], LucideIcon> = {
+  ingest: Rss, ai: Cpu, core: Activity, data: Database,
+}
+
+/** Left-to-right so it doubles as a rough data-flow diagram: alerts come in
+ *  through Ingestion, get reasoned about by the AI engines, land on Core
+ *  services, which read/write through Data. */
+const ARCHITECTURE_ORDER: HealthSubsystem["group"][] = ["ingest", "ai", "core", "data"]
+
+function groupStatus(group: HealthSubsystem["group"]): HealthSubsystem["status"] {
+  const subs = healthSubsystems.filter((s) => s.group === group)
+  if (subs.some((s) => s.status === "err")) return "err"
+  if (subs.some((s) => s.status === "warn")) return "warn"
+  return "ok"
+}
+
+function ArchitectureFlow() {
+  return (
+    <div className="flex items-stretch overflow-x-auto pb-1">
+      {ARCHITECTURE_ORDER.map((group, i) => {
+        const status = groupStatus(group)
+        const tone = statusTone[status]
+        const Icon = groupIcon[group]
+        const count = healthSubsystems.filter((s) => s.group === group).length
+        const nextStatus = i < ARCHITECTURE_ORDER.length - 1 ? groupStatus(ARCHITECTURE_ORDER[i + 1]) : null
+        const flowing = status === "ok" && (nextStatus === null || nextStatus !== "err")
+        return (
+          <div key={group} className="flex shrink-0 items-stretch">
+            <div
+              className={cn(
+                "flex min-w-36 flex-col items-center gap-1.5 rounded-xl border bg-card px-4 py-3 text-center",
+                tone === "alert" && "border-destructive/40",
+                tone === "warn" && "border-amber-500/40"
+              )}
+            >
+              <span
+                className={cn(
+                  "grid size-8 place-items-center rounded-lg",
+                  tone === "ok" && "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+                  tone === "warn" && "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+                  tone === "alert" && "bg-destructive/10 text-destructive"
+                )}
+              >
+                <Icon className="size-4" />
+              </span>
+              <span className="text-sm font-medium leading-tight">{groupLabel[group]}</span>
+              <span className="font-mono text-[10px] tabular-nums text-muted-foreground">{count} subsystems</span>
+              <StatusDot tone={tone} />
+            </div>
+            {i < ARCHITECTURE_ORDER.length - 1 && (
+              <div className="relative flex w-10 shrink-0 items-center overflow-hidden">
+                <div className={cn("h-px w-full", flowing ? "bg-emerald-500/25" : "bg-destructive/25")} />
+                {flowing &&
+                  [0, 0.6, 1.2].map((d) => (
+                    <span
+                      key={d}
+                      className="pipeline-flow-dot absolute size-1.5 rounded-full bg-emerald-500"
+                      style={{ animationDelay: `${d}s` }}
+                    />
+                  ))}
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
 }
 
 export function AdminHealthPage() {
@@ -54,6 +125,13 @@ export function AdminHealthPage() {
           </>
         }
       />
+
+      <Card>
+        <CardContent className="px-5 py-4">
+          <SectionLabel className="mb-3 block">Data flow</SectionLabel>
+          <ArchitectureFlow />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardContent className="px-0 py-0">

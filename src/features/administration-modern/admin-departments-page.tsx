@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useMemo, useState, type ReactNode } from "react"
 import {
   ChevronDown,
   Download,
@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils"
 import { departments, type Department } from "@/data/admin"
 import { FilterBar, SearchInput, ToneChip } from "./admin-ui"
 import { AdminFiltersPopover, type AdminFilterGroups } from "./admin-filters-popover"
+import "./org-chart.css"
 
 const DEPT_FILTERS: AdminFilterGroups = [
   [
@@ -67,6 +68,7 @@ function walk(nodes: Node[], expanded: Set<string>, out: Node[] = [], depth = 0)
 }
 
 export function AdminDepartmentsPage() {
+  const [view, setView] = useState<"list" | "chart">("list")
   const tree = useMemo(buildTree, [])
   const [expanded, setExpanded] = useState<Set<string>>(
     () => new Set(departments.map((d) => d.id))
@@ -87,6 +89,14 @@ export function AdminDepartmentsPage() {
         description="Reporting hierarchy and default group assignment. Used to scope incidents, dashboards and notifications."
         actions={
           <>
+            <div className="flex items-center gap-0.5 rounded-lg border bg-muted/30 p-0.5">
+              <ViewToggleButton active={view === "list"} onClick={() => setView("list")}>
+                List
+              </ViewToggleButton>
+              <ViewToggleButton active={view === "chart"} onClick={() => setView("chart")}>
+                Org chart
+              </ViewToggleButton>
+            </div>
             <Button variant="outline" size="sm" className="h-9">
               <Download className="size-4 text-muted-foreground" />
               Export
@@ -99,6 +109,8 @@ export function AdminDepartmentsPage() {
         }
       />
 
+      {view === "list" && (
+      <>
       <FilterBar>
         <SearchInput placeholder="Search departments…" />
         <div className="flex-1" />
@@ -154,6 +166,64 @@ export function AdminDepartmentsPage() {
           </table>
         </CardContent>
       </Card>
+      </>
+      )}
+
+      {view === "chart" && (
+        <Card>
+          <CardContent className="overflow-x-auto px-6 py-10">
+            <ul className="org-tree">
+              {tree.map((root) => (
+                <OrgChartNode key={root.id} node={root} />
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
     </div>
+  )
+}
+
+function OrgChartNode({ node }: { node: Node }) {
+  return (
+    <li>
+      <div className="org-box relative flex w-44 flex-col items-center gap-1 rounded-lg border bg-card px-3 py-2.5 shadow-sm">
+        <Network className="size-3.5 text-muted-foreground" />
+        <span className="text-center text-sm font-medium leading-tight">{node.name}</span>
+        <span className="text-xs text-muted-foreground">{node.manager}</span>
+        <span className="mt-0.5 rounded-full bg-muted px-2 py-0.5 font-mono text-[10px] tabular-nums text-muted-foreground">
+          {node.members} members
+        </span>
+      </div>
+      {node.children.length > 0 && (
+        <ul>
+          {node.children.map((child) => (
+            <OrgChartNode key={child.id} node={child} />
+          ))}
+        </ul>
+      )}
+    </li>
+  )
+}
+
+function ViewToggleButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  children: ReactNode
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+        active ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+      )}
+    >
+      {children}
+    </button>
   )
 }

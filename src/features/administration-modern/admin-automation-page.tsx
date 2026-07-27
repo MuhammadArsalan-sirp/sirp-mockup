@@ -1,7 +1,9 @@
+import { useState } from "react"
 import {
-  ArrowRight,
   Cable,
+  ChevronDown,
   GitBranch,
+  Pause,
   Plus,
   Tag,
   Workflow,
@@ -10,10 +12,13 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible"
 import { PageHeader } from "@/components/shared/page-header"
 import { cn } from "@/lib/utils"
 import { automationPipelines, type AutomationPipeline, type PipelineStageKind } from "@/data/admin-automation"
 import { KpiCard, SectionLabel, ToneChip, type Tone } from "./admin-ui"
+import { PipelineExecutionView } from "./admin-pipeline-execution"
+import "./pipeline-flow.css"
 
 const stageIcon: Record<PipelineStageKind, LucideIcon> = {
   vendor: Cable,
@@ -81,6 +86,8 @@ export function AdminAutomationPage() {
 }
 
 function PipelineCard({ pipeline }: { pipeline: AutomationPipeline }) {
+  const [showRun, setShowRun] = useState(false)
+
   return (
     <Card className={cn(pipeline.status === "draft" && "border-dashed")}>
       <CardContent className="px-5 py-4">
@@ -89,19 +96,32 @@ function PipelineCard({ pipeline }: { pipeline: AutomationPipeline }) {
             <h3 className="text-sm font-semibold">{pipeline.name}</h3>
             <ToneChip tone={statusTone[pipeline.status]}>{statusLabel[pipeline.status]}</ToneChip>
           </div>
-          {pipeline.status === "active" && (
-            <span className="font-mono text-xs tabular-nums text-muted-foreground">
-              {pipeline.volume24h} alerts · 24h
-            </span>
-          )}
+          <div className="flex items-center gap-3">
+            {pipeline.status === "active" && (
+              <span className="font-mono text-xs tabular-nums text-muted-foreground">
+                {pipeline.volume24h} alerts · 24h
+              </span>
+            )}
+            {pipeline.lastRun && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs text-muted-foreground"
+                onClick={() => setShowRun((v) => !v)}
+              >
+                {showRun ? "Hide" : "View"} last run
+                <ChevronDown className={cn("size-3 transition-transform", showRun && "rotate-180")} />
+              </Button>
+            )}
+          </div>
         </div>
 
-        <div className="mt-4 flex items-stretch gap-0 overflow-x-auto pb-1">
+        <div className={cn("mt-4 flex items-stretch gap-0 overflow-x-auto pb-1", pipeline.status === "draft" && "opacity-60")}>
           {pipeline.stages.map((stage, i) => {
             const Icon = stageIcon[stage.kind]
             return (
               <div key={i} className="flex shrink-0 items-stretch">
-                <div className="flex min-w-40 flex-col gap-1 rounded-lg border bg-muted/20 px-3 py-2.5">
+                <div className={cn("flex min-w-40 flex-col gap-1 rounded-lg border bg-muted/20 px-3 py-2.5", pipeline.status === "draft" && "border-dashed")}>
                   <div className="flex items-center gap-1.5">
                     <Icon className="size-3.5 shrink-0 text-primary" />
                     <SectionLabel>{stage.kind}</SectionLabel>
@@ -110,15 +130,56 @@ function PipelineCard({ pipeline }: { pipeline: AutomationPipeline }) {
                   <div className="text-[11px] leading-snug text-muted-foreground">{stage.detail}</div>
                 </div>
                 {i < pipeline.stages.length - 1 && (
-                  <div className="flex w-8 shrink-0 items-center justify-center">
-                    <ArrowRight className="size-4 text-muted-foreground/50" />
-                  </div>
+                  <PipelineConnector status={pipeline.status} />
                 )}
               </div>
             )
           })}
         </div>
+
+        {pipeline.lastRun && (
+          <Collapsible open={showRun} onOpenChange={setShowRun}>
+            <CollapsibleContent className="mt-4">
+              <PipelineExecutionView execution={pipeline.lastRun} />
+            </CollapsibleContent>
+          </Collapsible>
+        )}
       </CardContent>
     </Card>
+  )
+}
+
+/**
+ * The gap between two pipeline stages — a live flowing-dot line for active
+ * pipelines, a static dim line for paused ones, and a bare dashed gap for
+ * drafts (nothing to flow yet).
+ */
+function PipelineConnector({ status }: { status: AutomationPipeline["status"] }) {
+  if (status === "draft") {
+    return (
+      <div className="flex w-8 shrink-0 items-center justify-center">
+        <div className="h-px w-full border-t border-dashed border-muted-foreground/30" />
+      </div>
+    )
+  }
+  if (status === "paused") {
+    return (
+      <div className="relative flex w-8 shrink-0 items-center justify-center">
+        <div className="h-px w-full bg-muted-foreground/20" />
+        <Pause className="absolute size-3 fill-current text-muted-foreground/50" />
+      </div>
+    )
+  }
+  return (
+    <div className="relative flex w-8 shrink-0 items-center overflow-hidden">
+      <div className="h-px w-full bg-emerald-500/25" />
+      {[0, 0.6, 1.2].map((delay) => (
+        <span
+          key={delay}
+          className="pipeline-flow-dot absolute size-1.5 rounded-full bg-emerald-500"
+          style={{ animationDelay: `${delay}s` }}
+        />
+      ))}
+    </div>
   )
 }
