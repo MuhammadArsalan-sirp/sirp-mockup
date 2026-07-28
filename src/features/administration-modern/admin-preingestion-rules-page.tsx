@@ -145,7 +145,7 @@ function CascadeView({
   return (
     <div className="relative">
       <div
-        className="absolute top-6 bottom-6 left-6 w-px bg-border [mask-image:linear-gradient(to_bottom,transparent,black_8%,black_92%,transparent)]"
+        className="absolute top-6 bottom-6 left-6 w-0.5 rounded-full bg-muted-foreground/25 [mask-image:linear-gradient(to_bottom,transparent,black_6%,black_94%,transparent)]"
         aria-hidden
       />
       <div className="flex flex-col gap-3">
@@ -193,8 +193,10 @@ function RuleRow({
         >
           <Icon className="size-5 text-white" />
         </div>
-        <span className="absolute -right-1 -bottom-1 grid size-5 place-items-center rounded-full border-2 border-background bg-foreground font-mono text-[9px] font-bold text-background">
-          {index + 1}
+        <span className="absolute -right-1 -bottom-1 flex size-5 items-center justify-center rounded-full border-2 border-background bg-card leading-none shadow-sm">
+          <span className="font-mono text-[10px] leading-none font-bold text-foreground">
+            {index + 1}
+          </span>
         </span>
       </div>
 
