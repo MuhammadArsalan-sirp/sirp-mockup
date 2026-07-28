@@ -1,0 +1,20 @@
+/* Pre-Ingestion Rules — a one-time staggered reveal on load, since this
+ * list represents evaluation ORDER (a fact about priority), not something
+ * continuously in motion the way an active pipeline is. */
+@media (prefers-reduced-motion: no-preference) {
+  .rule-cascade-item {
+    opacity: 0;
+    animation: rule-cascade-in 0.45s ease-out forwards;
+  }
+}
+
+@keyframes rule-cascade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

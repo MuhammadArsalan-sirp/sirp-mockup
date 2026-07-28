@@ -37,6 +37,7 @@ const adminModernSegments: Record<string, string> = {
   posture: "Security posture",
   branding: "Branding & theme",
   automation: "Automation",
+  "pre-ingestion-rules": "Pre-ingestion rules",
   "products/incidents": "Incidents",
   "products/threat-intel": "Threat intelligence",
   "products/entities": "Entities",

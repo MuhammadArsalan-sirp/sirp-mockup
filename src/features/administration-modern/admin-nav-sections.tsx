@@ -12,6 +12,7 @@ import {
   Globe,
   KeyRound,
   Layers,
+  ListOrdered,
   Mail,
   Network,
   Palette,
@@ -107,6 +108,7 @@ export const adminGroups: AdminNavGroup[] = [
     blurb: "Vendor integrations, actions, and how incoming alerts route to a case.",
     items: [
       { to: "/admin-modern/automation", label: "Pipelines", icon: Workflow, meta: "5", hint: "Vendors, applications, actions, ingestion rules" },
+      { to: "/admin-modern/pre-ingestion-rules", label: "Pre-ingestion rules", icon: ListOrdered, meta: "5", hint: "What happens to an alert before it becomes a case" },
     ],
   },
   {
@@ -156,6 +158,7 @@ export const adminIconRegistry = {
   Globe,
   KeyRound,
   Layers,
+  ListOrdered,
   Mail,
   Network,
   Palette,
