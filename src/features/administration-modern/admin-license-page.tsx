@@ -24,6 +24,8 @@ const invoiceTone: Record<"paid" | "due" | "overdue", Tone> = {
 
 export function AdminLicensePage() {
   const seatUsedPct = (licenseDetail.seats.used / licenseDetail.seats.total) * 100
+  const seatsRemaining = licenseDetail.seats.total - licenseDetail.seats.used
+  const seatOverage = licenseDetail.seats.pending - seatsRemaining
 
   return (
     <div className="space-y-5">
@@ -37,6 +39,23 @@ export function AdminLicensePage() {
           </Button>
         }
       />
+
+      {seatOverage > 0 && (
+        <div className="flex items-start gap-3 rounded-xl border bg-linear-to-b from-primary/[0.04] to-transparent px-4 py-3">
+          <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-linear-to-br from-primary to-chart-3 text-white">
+            <Sparkles className="size-3.5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-medium leading-snug">
+              {licenseDetail.seats.pending} invites are pending but only {seatsRemaining} seats remain
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              If every pending invite is accepted, you'll be {seatOverage} over your {licenseDetail.plan} limit.
+              Resend, revoke, or request an upgrade before that happens.
+            </p>
+          </div>
+        </div>
+      )}
 
       <DataCard icon={CreditCard} title="Plan">
         <FormRow label="Plan">

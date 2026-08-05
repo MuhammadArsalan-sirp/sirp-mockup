@@ -157,7 +157,7 @@ export function AdminUserSheet({ user, open, onOpenChange }: Props) {
                 </div>
               </div>
               <a
-                href="/admin/roles"
+                href="/admin-modern/roles"
                 className="whitespace-nowrap text-xs text-muted-foreground hover:text-foreground"
               >
                 View →

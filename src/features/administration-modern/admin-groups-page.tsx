@@ -68,7 +68,7 @@ export function AdminGroupsPage() {
         actions={
           <>
             <Button variant="outline" size="sm" className="h-9" asChild>
-              <Link to="/admin/users">View users</Link>
+              <Link to="/admin-modern/users">View users</Link>
             </Button>
             <Button size="sm" className="h-9">
               <Plus className="size-4" />

@@ -9,6 +9,7 @@ import {
   KeyRound,
   RefreshCw,
   Shield,
+  Sparkles,
   Timer,
   Users,
   type LucideIcon,
@@ -24,12 +25,53 @@ import {
   type PostureCheck,
   type PostureSeverity,
 } from "@/data/admin"
+import { saraFindings } from "@/data/admin-sara"
+import { SaraDiffCard } from "./admin-sara-diff-card"
 import {
   SectionLabel,
   ToneChip,
   toneDots,
   type Tone,
 } from "./admin-ui"
+
+const scoreToneText: Record<Tone, string> = {
+  ok: "text-emerald-500",
+  info: "text-primary",
+  warn: "text-amber-500",
+  alert: "text-destructive",
+  muted: "text-muted-foreground",
+}
+
+function ScoreDonut({ score, tone }: { score: number; tone: Tone }) {
+  const size = 76
+  const strokeWidth = 7
+  const r = (size - strokeWidth) / 2
+  const circumference = 2 * Math.PI * r
+  const offset = circumference - (Math.min(100, Math.max(0, score)) / 100) * circumference
+
+  return (
+    <div className="relative shrink-0" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={r} strokeWidth={strokeWidth} className="stroke-muted" fill="none" />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          strokeWidth={strokeWidth}
+          fill="none"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          className={cn("transition-[stroke-dashoffset] duration-500", scoreToneText[tone])}
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="font-medium text-xl leading-none tabular-nums">{score}</span>
+      </div>
+    </div>
+  )
+}
 
 const categoryMeta: Record<PostureCategory, { label: string; icon: LucideIcon }> = {
   authentication: { label: "Authentication", icon: KeyRound },
@@ -96,20 +138,42 @@ export function AdminPosturePage() {
         }
       />
 
+      {/* Sara's proactive read of this checklist — same findings the admin
+          dock surfaces, just contextual to the page they're about. */}
+      <div className="rounded-xl border bg-linear-to-b from-primary/[0.03] to-transparent">
+        <div className="flex items-center gap-2 border-b px-4 py-3">
+          <span className="grid size-6 shrink-0 place-items-center rounded-md bg-linear-to-br from-primary to-chart-3 text-white">
+            <Sparkles className="size-3.5" />
+          </span>
+          <p className="text-sm font-medium">Sara reviewed this checklist</p>
+          <span className="ml-auto font-mono text-xs tabular-nums text-muted-foreground">
+            {saraFindings.length} suggestions
+          </span>
+        </div>
+        <div className="grid grid-cols-1 gap-3 p-4 lg:grid-cols-2">
+          {saraFindings.map((f) => (
+            <SaraDiffCard key={f.id} finding={f} compact />
+          ))}
+        </div>
+      </div>
+
       {/* Score row */}
       <Card>
         <CardContent className="px-5 py-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center">
-            <div>
-              <SectionLabel>Overall score</SectionLabel>
-              <div className="mt-1 flex items-baseline gap-2">
-                <span className="font-medium text-3xl leading-none tabular-nums tracking-tight">
-                  {score.score}
-                </span>
-                <span className="text-xs text-muted-foreground">/ 100</span>
-                <ToneChip tone={bandTone} className="ml-1 capitalize">
-                  {score.band.replace("-", " ")}
-                </ToneChip>
+            <div className="flex items-center gap-4">
+              <ScoreDonut score={score.score} tone={bandTone} />
+              <div>
+                <SectionLabel>Overall score</SectionLabel>
+                <div className="mt-1 flex items-baseline gap-2">
+                  <span className="font-medium text-3xl leading-none tabular-nums tracking-tight">
+                    {score.score}
+                  </span>
+                  <span className="text-xs text-muted-foreground">/ 100</span>
+                  <ToneChip tone={bandTone} className="ml-1 capitalize">
+                    {score.band.replace("-", " ")}
+                  </ToneChip>
+                </div>
               </div>
             </div>
             <div className="grid grid-cols-4 gap-2">

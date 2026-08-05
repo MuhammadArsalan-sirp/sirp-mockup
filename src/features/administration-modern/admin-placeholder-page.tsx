@@ -20,7 +20,7 @@ export function AdminPlaceholderPage() {
         description={description}
         actions={
           <Button variant="outline" size="sm" className="h-9" asChild>
-            <Link to="/admin" className="inline-flex items-center gap-2">
+            <Link to="/admin-modern" className="inline-flex items-center gap-2">
               <ArrowLeft className="size-4" />
               Overview
             </Link>
@@ -38,13 +38,13 @@ export function AdminPlaceholderPage() {
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <Button variant="secondary" size="sm" asChild>
-            <Link to="/admin/users">Users</Link>
+            <Link to="/admin-modern/users">Users</Link>
           </Button>
           <Button variant="secondary" size="sm" asChild>
-            <Link to="/admin/roles">Roles</Link>
+            <Link to="/admin-modern/roles">Roles</Link>
           </Button>
           <Button variant="secondary" size="sm" asChild>
-            <Link to="/admin/logs">Activity logs</Link>
+            <Link to="/admin-modern/logs">Activity logs</Link>
           </Button>
         </div>
       </div>

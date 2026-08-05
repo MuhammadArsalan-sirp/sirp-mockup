@@ -1,0 +1,77 @@
+/* Classic pure-CSS org-chart connector lines — a <ul>/<li> tree where each
+ * level's siblings are joined by a horizontal bar and dropped into their
+ * parent by a vertical stem. Used by the Departments "Org chart" view. */
+.org-tree,
+.org-tree ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+.org-tree {
+  display: flex;
+  justify-content: center;
+  min-width: max-content;
+  margin: 0 auto;
+}
+
+.org-tree ul {
+  display: flex;
+  padding-top: 24px;
+}
+
+.org-tree li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 14px;
+  position: relative;
+}
+
+.org-tree li::before,
+.org-tree li::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  border-top: 1px solid var(--border);
+  width: 50%;
+}
+.org-tree li::before {
+  left: 0;
+}
+.org-tree li::after {
+  right: 0;
+  border-left: 1px solid var(--border);
+  height: 24px;
+}
+.org-tree li:first-child::before {
+  border: none;
+}
+.org-tree li:last-child::after {
+  border-left: none;
+}
+.org-tree li:only-child::before,
+.org-tree li:only-child::after {
+  display: none;
+}
+
+.org-tree > li {
+  padding-top: 0;
+}
+.org-tree > li::before,
+.org-tree > li::after {
+  display: none;
+}
+
+.org-tree li > .org-box::before {
+  content: "";
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  border-left: 1px solid var(--border);
+  height: 24px;
+}
+.org-tree > li > .org-box::before {
+  display: none;
+}

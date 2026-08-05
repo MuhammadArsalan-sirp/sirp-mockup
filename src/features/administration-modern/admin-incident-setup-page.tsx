@@ -190,8 +190,47 @@ function CategoriesTab() {
   )
 }
 
+function StateFlowDiagram() {
+  return (
+    <Card>
+      <CardContent className="px-5 py-4">
+        <div className="flex items-stretch overflow-x-auto pb-1">
+          {incidentStates.map((s, i) => (
+            <div key={s.id} className="flex shrink-0 items-stretch">
+              <div
+                className={cn(
+                  "flex min-w-32 flex-col items-center gap-1 rounded-lg border bg-card px-3 py-2.5 text-center",
+                  s.kind === "open" && "border-primary/30",
+                  s.kind === "in-progress" && "border-amber-500/30",
+                  s.kind === "waiting" && "border-muted-foreground/30",
+                  s.kind === "closed" && "border-emerald-500/30"
+                )}
+              >
+                <span className="text-sm font-medium leading-tight">{s.label}</span>
+                <ToneChip tone={stateTone[s.kind]} className="capitalize">
+                  {s.kind.replace("-", " ")}
+                </ToneChip>
+              </div>
+              {i < incidentStates.length - 1 && (
+                <div className="flex w-8 shrink-0 items-center justify-center">
+                  <ChevronRight className="size-4 text-muted-foreground/40" />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-xs text-muted-foreground">
+          The path a ticket normally follows. SLA timers only run on states marked "counts against SLA" below.
+        </p>
+      </CardContent>
+    </Card>
+  )
+}
+
 function StatesTab() {
   return (
+    <div className="space-y-3">
+    <StateFlowDiagram />
     <Card>
       <CardContent className="px-0 py-0">
         <table className="w-full text-sm">
@@ -221,6 +260,7 @@ function StatesTab() {
         </table>
       </CardContent>
     </Card>
+    </div>
   )
 }
 

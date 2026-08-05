@@ -8,6 +8,7 @@ import { SirpLogo } from "@/components/shared/brand-logo"
 import { PreferencesPopover } from "./preferences/preferences-popover"
 import { NotificationsPopover } from "./notifications-popover"
 import { navSections } from "./nav-config"
+import { useCommandPalette } from "@/stores/command-palette"
 
 // ── Admin sub-page titles ────────────────────────────────────────
 const adminSegments: Record<string, string> = {
@@ -30,6 +31,19 @@ const adminSegments: Record<string, string> = {
   backup: "Backup & restore",
 }
 
+// ── /admin-modern sub-page titles (the redesign concept) ─────────
+const adminModernSegments: Record<string, string> = {
+  ...adminSegments,
+  posture: "Security posture",
+  branding: "Branding & theme",
+  automation: "Automation",
+  "pre-ingestion-rules": "Pre-ingestion rules",
+  "products/incidents": "Incidents",
+  "products/threat-intel": "Threat intelligence",
+  "products/entities": "Entities",
+  "sara-queue": "Sara's approval queue",
+}
+
 /**
  * Walk navSections to resolve a breadcrumb for the current path.
  * Returns { parent, current } where parent is the section label (or parent
@@ -50,7 +64,17 @@ function resolveBreadcrumb(pathname: string): { parent: string; current: string 
       return { parent: "Incidents", current: `${incidentId} · Focus` }
     return { parent: "Incidents", current: incidentId || "Incident" }
   }
-  // Administration — exact index vs /admin/:section
+  // Administration (modern redesign concept) — exact index vs /admin-modern/:section
+  if (pathname === "/admin-modern" || pathname === "/admin-modern/") {
+    return { parent: "Administration", current: "Overview" }
+  }
+  if (pathname.startsWith("/admin-modern/")) {
+    const parts = pathname.split("/").filter(Boolean)
+    // parts: ["admin-modern", section, optional sub-section] e.g. ["admin-modern","products","incidents"]
+    const seg = parts[1] === "products" ? `products/${parts[2] ?? ""}` : (parts[1] ?? "")
+    return { parent: "Administration", current: adminModernSegments[seg] ?? "Administration" }
+  }
+  // Administration (old-SIRP-aligned) — exact index vs /admin/:section
   if (pathname === "/admin" || pathname === "/admin/") {
     return { parent: "Administration", current: "Overview" }
   }
@@ -94,6 +118,7 @@ export function Topbar() {
   const navbarBehavior = usePreferences((s) => s.navbarBehavior)
 
   const { parent, current } = resolveBreadcrumb(pathname)
+  const setCommandPaletteOpen = useCommandPalette((s) => s.setOpen)
 
   const isDark =
     themeMode === "dark" ||
@@ -134,7 +159,10 @@ export function Topbar() {
         <span className="truncate font-medium">{current}</span>
       </nav>
       <div className="ml-auto flex items-center gap-1">
-        <button className="hidden md:flex items-center gap-2 h-9 px-3 mr-1 rounded-md border bg-background text-muted-foreground text-sm hover:text-foreground hover:bg-accent w-[260px]">
+        <button
+          onClick={() => setCommandPaletteOpen(true)}
+          className="hidden md:flex items-center gap-2 h-9 px-3 mr-1 rounded-md border bg-background text-muted-foreground text-sm hover:text-foreground hover:bg-accent w-[260px]"
+        >
           <Search className="size-3.5" />
           <span>Search across SIRP…</span>
           <kbd className="ml-auto text-xs font-mono bg-muted px-1.5 py-0.5 rounded">

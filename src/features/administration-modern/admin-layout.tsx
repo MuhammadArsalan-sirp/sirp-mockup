@@ -3,6 +3,7 @@ import { LayoutDashboard } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { AdminMobileNav } from "./admin-mobile-nav"
 import { adminGroups } from "./admin-nav-sections"
+import { AdminSaraDock } from "./admin-sara-dock"
 
 /**
  * Administration sub-app shell.
@@ -24,7 +25,7 @@ export function AdminLayout() {
 
         <div className="flex-1 overflow-y-auto py-3">
           <RailItem
-            to="/admin"
+            to="/admin-modern"
             label="Overview"
             icon={LayoutDashboard}
             end
@@ -61,6 +62,8 @@ export function AdminLayout() {
           </div>
         </div>
       </div>
+
+      <AdminSaraDock />
     </div>
   )
 }
