@@ -174,34 +174,36 @@ export function AdminUsersPage() {
         <AdminFiltersPopover groups={USER_FILTERS} />
       </FilterBar>
 
-      {/* Bulk action bar */}
+      {/* Floating bulk action bar — appears above every other selectable-list
+          page in the module, so multi-user actions feel the same everywhere. */}
       {selectedRows.size > 0 && (
-        <Card className="border-primary/30 bg-primary/5">
-          <CardContent className="flex items-center justify-between gap-3 px-5 py-3">
-            <div className="flex items-center gap-3 text-sm">
-              <CheckCircle2 className="size-4 text-primary" />
-              <span className="font-medium">{selectedRows.size} selected</span>
-              <span className="text-muted-foreground">— actions apply to every selected user</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="h-8">
-                <Lock className="size-3.5 mr-1" />
-                Lock
-              </Button>
-              <Button variant="outline" size="sm" className="h-8">
-                <KeyRound className="size-3.5 mr-1" />
-                Reset MFA
-              </Button>
-              <Button variant="outline" size="sm" className="h-8">
-                <UsersRound className="size-3.5 mr-1" />
-                Add to group
-              </Button>
-              <Button variant="outline" size="sm" className="h-8" onClick={() => setSelectedRows(new Set())}>
-                Clear
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="pointer-events-none fixed inset-x-0 bottom-6 z-40 flex justify-center">
+          <div className="pointer-events-auto flex items-center gap-2 rounded-full border bg-popover py-1.5 pr-2 pl-4 text-sm shadow-lg">
+            <CheckCircle2 className="size-4 text-primary" />
+            <span className="font-medium">{selectedRows.size} selected</span>
+            <div className="mx-1 h-4 w-px bg-border" />
+            <Button variant="ghost" size="sm" className="h-8 rounded-full">
+              <Lock className="size-3.5" />
+              Lock
+            </Button>
+            <Button variant="ghost" size="sm" className="h-8 rounded-full">
+              <KeyRound className="size-3.5" />
+              Reset MFA
+            </Button>
+            <Button variant="ghost" size="sm" className="h-8 rounded-full">
+              <UsersRound className="size-3.5" />
+              Add to group
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 rounded-full text-muted-foreground"
+              onClick={() => setSelectedRows(new Set())}
+            >
+              Clear
+            </Button>
+          </div>
+        </div>
       )}
 
       {/* Table */}

@@ -931,6 +931,24 @@ export const backupJobs: BackupJob[] = [
   { id: "b_007", startedAt: "2026-04-28 14:12", durationSec: 50,  size: "2.6 GB", scope: "incremental", status: "success", artifactsCount: 139, regions: "ksa-central-1, ksa-west-1" },
 ]
 
+/** One cell per day for the last ~9 weeks — the daily full backup's outcome,
+ *  not every incremental run. Computed from a fixed anchor date so the grid
+ *  is stable across reloads instead of drifting with "today". */
+export type BackupDay = { date: string; status: "success" | "failed" }
+
+const BACKUP_HEATMAP_ANCHOR = "2026-04-29T00:00:00Z"
+const BACKUP_HEATMAP_FAILED_OFFSETS = new Set([9, 27, 41, 58])
+
+export const backupHistory: BackupDay[] = Array.from({ length: 63 }, (_, i) => {
+  const offset = 62 - i
+  const d = new Date(BACKUP_HEATMAP_ANCHOR)
+  d.setUTCDate(d.getUTCDate() - offset)
+  return {
+    date: d.toISOString().slice(0, 10),
+    status: BACKUP_HEATMAP_FAILED_OFFSETS.has(offset) ? "failed" : "success",
+  }
+})
+
 // ─────────────────────────────────────────────────────────────────
 // Email / SMTP
 // ─────────────────────────────────────────────────────────────────

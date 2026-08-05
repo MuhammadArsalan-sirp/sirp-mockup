@@ -1,0 +1,26 @@
+/* Flowing-dot connector for active automation pipelines — small dots drift
+ * left-to-right along the connector line, suggesting alerts actively moving
+ * through the pipeline. Paused/draft pipelines never get this class, so
+ * their connectors stay static by default. */
+@media (prefers-reduced-motion: no-preference) {
+  .pipeline-flow-dot {
+    animation: pipeline-flow 1.8s linear infinite;
+  }
+}
+
+@keyframes pipeline-flow {
+  0% {
+    left: -8%;
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    left: 108%;
+    opacity: 0;
+  }
+}

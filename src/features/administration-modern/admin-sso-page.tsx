@@ -1,6 +1,7 @@
 import { useState } from "react"
 import {
   AlertTriangle,
+  Check,
   Copy,
   Download,
   KeyRound,
@@ -22,6 +23,59 @@ import {
   ToneChip,
   type Tone,
 } from "./admin-ui"
+import "./pipeline-flow.css"
+
+type TestState = "idle" | "testing" | "success"
+
+function ConnectionTest({ providerName }: { providerName: string }) {
+  const [state, setState] = useState<TestState>("idle")
+
+  const runTest = () => {
+    setState("testing")
+    window.setTimeout(() => setState("success"), 1300)
+    window.setTimeout(() => setState("idle"), 3600)
+  }
+
+  return (
+    <div className="mb-3 flex items-center gap-3 rounded-lg border bg-muted/20 px-3 py-2">
+      <span className="shrink-0 rounded-md bg-primary/10 px-2 py-1 font-mono text-[10px] font-medium text-primary">
+        SIRP
+      </span>
+      <div className="relative flex h-px flex-1 items-center overflow-hidden">
+        <div className={cn("h-px w-full", state === "testing" ? "bg-primary/30" : "bg-border")} />
+        {state === "testing" &&
+          [0, 0.5, 1].map((d) => (
+            <span
+              key={d}
+              className="pipeline-flow-dot absolute size-1.5 rounded-full bg-primary"
+              style={{ animationDelay: `${d}s`, animationDuration: "1s" }}
+            />
+          ))}
+      </div>
+      <span className="shrink-0 truncate rounded-md bg-muted px-2 py-1 font-mono text-[10px] font-medium text-muted-foreground">
+        {providerName}
+      </span>
+      <Button
+        size="sm"
+        variant="outline"
+        className="h-7 shrink-0 text-xs"
+        onClick={runTest}
+        disabled={state === "testing"}
+      >
+        {state === "success" ? (
+          <>
+            <Check className="size-3 text-emerald-500" />
+            Connected · 312ms
+          </>
+        ) : state === "testing" ? (
+          "Testing…"
+        ) : (
+          "Test connection"
+        )}
+      </Button>
+    </div>
+  )
+}
 
 const statusTone: Record<SsoProvider["status"], Tone> = {
   active: "ok", draft: "warn", disabled: "muted",
@@ -130,6 +184,8 @@ export function AdminSsoPage() {
             }
           >
             <p className="mb-3 text-sm text-muted-foreground">{active.description}</p>
+
+            <ConnectionTest providerName={active.name} />
 
             <FormRow label="Domain"><ReadValue mono>{active.domain}</ReadValue></FormRow>
             <FormRow label="ACS URL" hint="Where the IdP posts SAML assertions.">

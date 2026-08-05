@@ -34,6 +34,45 @@ import {
   type Tone,
 } from "./admin-ui"
 
+const scoreToneText: Record<Tone, string> = {
+  ok: "text-emerald-500",
+  info: "text-primary",
+  warn: "text-amber-500",
+  alert: "text-destructive",
+  muted: "text-muted-foreground",
+}
+
+function ScoreDonut({ score, tone }: { score: number; tone: Tone }) {
+  const size = 76
+  const strokeWidth = 7
+  const r = (size - strokeWidth) / 2
+  const circumference = 2 * Math.PI * r
+  const offset = circumference - (Math.min(100, Math.max(0, score)) / 100) * circumference
+
+  return (
+    <div className="relative shrink-0" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={r} strokeWidth={strokeWidth} className="stroke-muted" fill="none" />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          strokeWidth={strokeWidth}
+          fill="none"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          className={cn("transition-[stroke-dashoffset] duration-500", scoreToneText[tone])}
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="font-medium text-xl leading-none tabular-nums">{score}</span>
+      </div>
+    </div>
+  )
+}
+
 const categoryMeta: Record<PostureCategory, { label: string; icon: LucideIcon }> = {
   authentication: { label: "Authentication", icon: KeyRound },
   session:        { label: "Sessions",       icon: Timer    },
@@ -122,16 +161,19 @@ export function AdminPosturePage() {
       <Card>
         <CardContent className="px-5 py-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center">
-            <div>
-              <SectionLabel>Overall score</SectionLabel>
-              <div className="mt-1 flex items-baseline gap-2">
-                <span className="font-medium text-3xl leading-none tabular-nums tracking-tight">
-                  {score.score}
-                </span>
-                <span className="text-xs text-muted-foreground">/ 100</span>
-                <ToneChip tone={bandTone} className="ml-1 capitalize">
-                  {score.band.replace("-", " ")}
-                </ToneChip>
+            <div className="flex items-center gap-4">
+              <ScoreDonut score={score.score} tone={bandTone} />
+              <div>
+                <SectionLabel>Overall score</SectionLabel>
+                <div className="mt-1 flex items-baseline gap-2">
+                  <span className="font-medium text-3xl leading-none tabular-nums tracking-tight">
+                    {score.score}
+                  </span>
+                  <span className="text-xs text-muted-foreground">/ 100</span>
+                  <ToneChip tone={bandTone} className="ml-1 capitalize">
+                    {score.band.replace("-", " ")}
+                  </ToneChip>
+                </div>
               </div>
             </div>
             <div className="grid grid-cols-4 gap-2">
