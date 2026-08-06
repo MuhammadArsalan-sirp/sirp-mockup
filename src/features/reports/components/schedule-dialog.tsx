@@ -1,0 +1,94 @@
+import { useState } from "react"
+import { Check } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { getSchedulesForReport, type Report } from "@/data/reports"
+import { users } from "@/data/users"
+import { ScheduleForm, DEFAULT_SCHEDULE_VALUE, type ScheduleFormValue } from "./schedule-form"
+
+/**
+ * Standalone schedule editor for an existing report — mirrors react-go's
+ * dedicated Scheduler.js modal (separate from the create wizard), reachable
+ * from the row action menu on any tab.
+ */
+export function ScheduleDialog({
+  open,
+  onOpenChange,
+  report,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  report: Report | null
+}) {
+  if (!report) return null
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+        <ScheduleDialogBody key={report.id} report={report} onDone={() => onOpenChange(false)} />
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function scheduleToFormValue(reportId: string): ScheduleFormValue {
+  const existing = getSchedulesForReport(reportId)[0]
+  if (!existing) return DEFAULT_SCHEDULE_VALUE
+  return {
+    frequency: existing.frequency,
+    hourSlot: existing.hourSlot ?? 8,
+    dayOfMonth: existing.dayOfMonth ?? 1,
+    weekday: existing.weekday ?? "Monday",
+    dateRange: existing.dateRange,
+    recipientIds: existing.recipients.map((r) => r.id),
+    emailSubject: existing.emailSubject,
+    emailContent: existing.emailContent,
+    deliveryChannel: existing.deliveryChannel,
+    intervalDays: existing.intervalDays ?? 1,
+    timezone: existing.timezone ?? "UTC",
+  }
+}
+
+function ScheduleDialogBody({ report, onDone }: { report: Report; onDone: () => void }) {
+  const [value, setValue] = useState<ScheduleFormValue>(() => scheduleToFormValue(report.id))
+  const [saved, setSaved] = useState(false)
+
+  function handleSave() {
+    setSaved(true)
+    setTimeout(onDone, 800)
+  }
+
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>Schedule · {report.name}</DialogTitle>
+        <DialogDescription>
+          Recipients are sourced from the company directory below — {Object.keys(users).length} analysts available.
+        </DialogDescription>
+      </DialogHeader>
+      {saved ? (
+        <div className="grid place-items-center py-10 text-center">
+          <span className="grid size-12 place-items-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+            <Check className="size-5" />
+          </span>
+          <p className="mt-3 text-sm font-medium">Schedule saved</p>
+        </div>
+      ) : (
+        <>
+          <ScheduleForm value={value} onChange={setValue} />
+          <DialogFooter className="mt-2">
+            <Button size="sm" className="sm:ml-auto" onClick={handleSave}>
+              Save schedule
+            </Button>
+          </DialogFooter>
+        </>
+      )}
+    </>
+  )
+}

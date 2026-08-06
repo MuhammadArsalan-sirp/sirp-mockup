@@ -6,6 +6,7 @@ import {
   Sparkles,
   Globe,
   Settings,
+  FileBarChart,
   type LucideIcon,
 } from "lucide-react"
 
@@ -55,6 +56,18 @@ export const navSections: NavSection[] = [
       { title: "Incidents", url: "/incidents", icon: AlertTriangle, badge: 47 },
       { title: "Threat Intel", url: "/threat-intel", icon: Shield },
       { title: "Entities", url: "/entities", icon: Monitor },
+      {
+        title: "Reports",
+        url: "/reports",
+        icon: FileBarChart,
+        children: [
+          { title: "Overview", url: "/reports/overview" },
+          { title: "Templates", url: "/reports/templates" },
+          { title: "Saved Exports", url: "/reports/saved-exports" },
+          { title: "Scheduled", url: "/reports/scheduled" },
+          { title: "History", url: "/reports/history" },
+        ],
+      },
     ],
   },
   {
