@@ -93,10 +93,34 @@ async function saveSchedule(input: SaveScheduleInput): Promise<{ id: string; per
   return { id: data.id as string, persisted: true }
 }
 
+/**
+ * Roster recipients only have synthesized `@sirp-demo.local` addresses —
+ * there's nothing real to deliver to, so those are always logged as
+ * "simulated." Only a real, user-typed external email is actually sent,
+ * via the send-report-email Edge Function (which holds the Resend API key
+ * server-side — the browser never sees it).
+ */
+async function sendRealEmail(input: {
+  to: string
+  subject: string
+  message: string
+  reportName: string
+}): Promise<"sent" | "failed"> {
+  if (!supabase) return "failed"
+  try {
+    const { error } = await supabase.functions.invoke("send-report-email", { body: input })
+    if (error) console.error("[reportsBackend] send-report-email failed:", error.message)
+    return error ? "failed" : "sent"
+  } catch (err) {
+    console.error("[reportsBackend] send-report-email invoke threw:", err)
+    return "failed"
+  }
+}
+
 async function sendReportNow(input: SendReportNowInput): Promise<{ ids: string[]; persisted: boolean }> {
   const recipientRows = [
-    ...input.recipients.map((r) => ({ email: toDemoEmail(r), name: r.name as string | null })),
-    ...(input.externalEmail ? [{ email: input.externalEmail, name: null as string | null }] : []),
+    ...input.recipients.map((r) => ({ email: toDemoEmail(r), name: r.name as string | null, real: false })),
+    ...(input.externalEmail ? [{ email: input.externalEmail, name: null as string | null, real: true }] : []),
   ]
 
   if (!isSupabaseConfigured || !supabase) {
@@ -104,10 +128,18 @@ async function sendReportNow(input: SendReportNowInput): Promise<{ ids: string[]
     return { ids: recipientRows.map(() => randomId()), persisted: false }
   }
 
-  const { data, error } = await supabase
-    .from("report_deliveries")
-    .insert(
-      recipientRows.map((r) => ({
+  const rows = await Promise.all(
+    recipientRows.map(async (r) => {
+      const status =
+        r.real && input.channel === "email"
+          ? await sendRealEmail({
+              to: r.email,
+              subject: input.subject,
+              message: input.message,
+              reportName: input.report.name,
+            })
+          : "simulated"
+      return {
         report_id: input.report.id,
         report_name: input.report.name,
         trigger_type: "manual",
@@ -116,10 +148,12 @@ async function sendReportNow(input: SendReportNowInput): Promise<{ ids: string[]
         channel: input.channel,
         subject: input.subject,
         message: input.message,
-        status: "sent",
-      }))
-    )
-    .select("id")
+        status,
+      }
+    })
+  )
+
+  const { data, error } = await supabase.from("report_deliveries").insert(rows).select("id")
 
   if (error) {
     console.error("[reportsBackend] sendReportNow failed:", error.message)

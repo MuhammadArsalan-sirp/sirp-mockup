@@ -126,6 +126,9 @@ function SendReportDialogBody({ report, onDone }: { report: Report; onDone: () =
               placeholder="someone@example.com"
               className="h-9"
             />
+            <p className="text-xs text-muted-foreground">
+              Roster recipients use demo addresses and are logged, not delivered. An email typed here is actually sent.
+            </p>
           </div>
 
           <div className="space-y-2">

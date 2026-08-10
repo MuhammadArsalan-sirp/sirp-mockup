@@ -86,10 +86,35 @@ you ran once in Supabase's SQL editor to create them:
 | `report_deliveries` | Use "Send report" (one-off) | who it went to, subject, message, status |
 | `report_export_log` | Generate any PDF/Excel/CSV | which report, which format, when |
 
-Nothing sends a real email. "Send report" and "Schedule" just write a row
-saying *"this would have been emailed to so-and-so"* — enough to prove the
-backend connection is real and demoable, without needing an email
-provider account or risking sending mail to fake fixture addresses.
+By default nothing sends a real email — "Send report" and "Schedule" just
+write a row saying *"this would have been emailed to so-and-so."* That's
+enough to prove the backend connection is real and demoable, without
+needing an email provider account or risking sending mail to fake fixture
+addresses.
+
+**Real sending is now wired in too, for one specific path.** Fixture
+recipients (Ahmed, Sara, etc.) only have synthesized `@sirp-demo.local`
+addresses — there's genuinely nothing to deliver to, so those always log
+as `simulated`. But the "Send report" dialog's **external email** field
+(type in any real address) actually sends, via:
+
+- [`supabase/functions/send-report-email/index.ts`](supabase/functions/send-report-email/index.ts) —
+  a Supabase Edge Function (a small server-side function Supabase hosts
+  for you). It holds the Resend API key and calls Resend's email API.
+- **Resend** — the actual email-sending service. Its API key is stored as
+  a Supabase secret (`RESEND_API_KEY`), never in this repo, never in the
+  browser.
+
+Why the extra hop through an Edge Function instead of calling Resend
+straight from the browser: any key that ships inside the browser's JS
+bundle (like our Supabase anon key) is visible to anyone with devtools
+open. A key that can send email on your behalf has to stay server-side —
+so the browser calls the Edge Function, and the Edge Function calls
+Resend.
+
+Until you verify your own sending domain with Resend, their sandbox
+sender can only deliver to the email address you signed up to Resend
+with — fine for demoing to yourself, not for blasting arbitrary inboxes.
 
 ### The one file that knows about Supabase
 
@@ -149,7 +174,10 @@ click → schedule-dialog.tsx collects the form (schedule-form.tsx)
 **"Send report" → Send now:**
 ```
 click → send-report-dialog.tsx collects recipients/subject/message
-      → reports-backend.ts writes one row per recipient to Supabase (report_deliveries)
+      → for the roster picks (fake @sirp-demo.local addresses): logged as "simulated"
+      → for the typed external email: reports-backend.ts calls the send-report-email
+        Edge Function → Edge Function calls Resend → real email sent, status "sent"/"failed"
+      → every recipient gets one row in Supabase (report_deliveries)
       → dialog shows "Report sent"
 ```
 
@@ -174,12 +202,17 @@ src/
       report-studio-page.tsx           Report Studio's Export dialog
 supabase/
   schema.sql                            Run once in Supabase's SQL editor
+  functions/send-report-email/index.ts  Edge Function — actually sends via Resend
 .env.example                            Template for .env.local
 ```
 
 ## 6. What's *not* done (on purpose)
 
-- No real email sending — everything is logged, not dispatched.
+- Real sending only covers the "Send report" dialog's external-email
+  field — roster recipients and scheduled/recurring sends still just log,
+  they don't dispatch. Wiring schedules to actually fire on a timer would
+  need a separate scheduled job (e.g. a `pg_cron` trigger calling the
+  Edge Function) — not built.
 - The **Scheduled** and **History** tabs still show fixture data, not a
   live read from Supabase. We only wired up the *writes* (the ask was
   "prove actions have a backend connection"), not a full read/rewrite of
