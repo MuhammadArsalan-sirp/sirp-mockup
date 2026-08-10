@@ -12,6 +12,9 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { DataTableColumnHeader } from "@/components/shared/data-table"
 import { moduleLabels, type Report, type ReportModule, type ReportStatus } from "@/data/reports"
+import { buildReportExportRows, exportRowsToExcel } from "../lib/report-export"
+import { exportReportToPdf } from "../lib/report-pdf-export"
+import { reportsBackend } from "../lib/reports-backend"
 
 export function ReportTypeBadge({ report }: { report: Report }) {
   const isExcel = report.format === "EXCEL"
@@ -73,6 +76,29 @@ export type ReportRowHandlers = {
   onPreview: (report: Report) => void
   onEdit: (report: Report) => void
   onSchedule: (report: Report) => void
+  onSendNow: (report: Report) => void
+}
+
+async function handleGeneratePdf(report: Report) {
+  const filename = `${report.name.replace(/[^a-z0-9]+/gi, "-")}.pdf`
+  await exportReportToPdf(report, filename)
+  void reportsBackend.logExport({
+    reportId: report.id,
+    reportName: report.name,
+    format: "PDF",
+    triggeredBy: "manual",
+  })
+}
+
+function handleDownloadExcel(report: Report) {
+  const filename = `${report.name.replace(/[^a-z0-9]+/gi, "-")}.xlsx`
+  exportRowsToExcel(buildReportExportRows(report), filename, report.name)
+  void reportsBackend.logExport({
+    reportId: report.id,
+    reportName: report.name,
+    format: "EXCEL",
+    triggeredBy: "manual",
+  })
 }
 
 /**
@@ -198,9 +224,14 @@ export function createReportColumns(handlers: ReportRowHandlers): ColumnDef<Repo
                 <DropdownMenuItem onClick={() => handlers.onEdit(report)}>Edit</DropdownMenuItem>
               )}
               {!isExcel && <DropdownMenuItem>Duplicate</DropdownMenuItem>}
-              {!isExcel && <DropdownMenuItem>Generate PDF</DropdownMenuItem>}
-              {isExcel && <DropdownMenuItem>Download Excel</DropdownMenuItem>}
+              {!isExcel && (
+                <DropdownMenuItem onClick={() => void handleGeneratePdf(report)}>Generate PDF</DropdownMenuItem>
+              )}
+              {isExcel && (
+                <DropdownMenuItem onClick={() => handleDownloadExcel(report)}>Download Excel</DropdownMenuItem>
+              )}
               <DropdownMenuItem onClick={() => handlers.onSchedule(report)}>Schedule</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handlers.onSendNow(report)}>Send report…</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-destructive focus:text-destructive">
                 Delete

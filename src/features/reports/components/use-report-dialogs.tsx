@@ -4,6 +4,7 @@ import type { ReportRowHandlers } from "./report-columns"
 import { ReportPreviewSheet } from "./report-preview-sheet"
 import { CreateReportWizard } from "./create-report-wizard"
 import { ScheduleDialog } from "./schedule-dialog"
+import { SendReportDialog } from "./send-report-dialog"
 
 /**
  * Centralizes the preview/create-edit/schedule dialog state shared by every
@@ -21,6 +22,9 @@ export function useReportDialogs() {
   const [scheduleReport, setScheduleReport] = useState<Report | null>(null)
   const [scheduleOpen, setScheduleOpen] = useState(false)
 
+  const [sendReport, setSendReport] = useState<Report | null>(null)
+  const [sendOpen, setSendOpen] = useState(false)
+
   const handlers: ReportRowHandlers = {
     onPreview: (r) => {
       setPreviewReport(r)
@@ -34,6 +38,10 @@ export function useReportDialogs() {
     onSchedule: (r) => {
       setScheduleReport(r)
       setScheduleOpen(true)
+    },
+    onSendNow: (r) => {
+      setSendReport(r)
+      setSendOpen(true)
     },
   }
 
@@ -58,6 +66,7 @@ export function useReportDialogs() {
         initialTemplateId={wizardTemplateId}
       />
       <ScheduleDialog report={scheduleReport} open={scheduleOpen} onOpenChange={setScheduleOpen} />
+      <SendReportDialog report={sendReport} open={sendOpen} onOpenChange={setSendOpen} />
     </>
   )
 

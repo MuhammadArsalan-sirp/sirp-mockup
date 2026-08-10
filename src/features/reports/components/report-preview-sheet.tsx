@@ -1,4 +1,5 @@
-import { Calendar, Clock, Download, Hash, Mail, PanelRightClose } from "lucide-react"
+import { useState } from "react"
+import { Calendar, Clock, Download, Hash, Loader2, Mail, PanelRightClose } from "lucide-react"
 import {
   Sheet,
   SheetContent,
@@ -9,17 +10,19 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { DataCard, SectionLabel } from "@/features/administration-modern/admin-ui"
+import { DataCard } from "@/features/administration-modern/admin-ui"
 import {
   getCoverPageById,
   getHistoryForReport,
   getSchedulesForReport,
-  getWidgetById,
-  moduleLabels,
-  reportWidgetCatalog,
   type Report,
+  type ReportHistoryEntry,
 } from "@/data/reports"
 import { ReportStatusBadge, ReportTypeBadge } from "./report-columns"
+import { ReportSummaryCards } from "./report-printable-summary"
+import { buildReportExportRows, exportRowsToCsv, exportRowsToExcel } from "../lib/report-export"
+import { exportReportToPdf } from "../lib/report-pdf-export"
+import { reportsBackend } from "../lib/reports-backend"
 
 export function ReportPreviewSheet({
   report,
@@ -30,10 +33,35 @@ export function ReportPreviewSheet({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
+  const [downloadingId, setDownloadingId] = useState<string | null>(null)
+
   if (!report) return null
   const coverPage = report.coverPageId ? getCoverPageById(report.coverPageId) : undefined
   const schedules = getSchedulesForReport(report.id)
   const history = getHistoryForReport(report.id)
+
+  async function handleDownloadHistoryEntry(entry: ReportHistoryEntry) {
+    if (!report) return
+    setDownloadingId(entry.id)
+    try {
+      const baseName = `${report.name.replace(/[^a-z0-9]+/gi, "-")}-${entry.generatedAt}`
+      if (entry.format === "PDF") {
+        await exportReportToPdf(report, `${baseName}.pdf`)
+      } else if (entry.format === "EXCEL") {
+        exportRowsToExcel(buildReportExportRows(report), `${baseName}.xlsx`)
+      } else {
+        exportRowsToCsv(buildReportExportRows(report), `${baseName}.csv`)
+      }
+      void reportsBackend.logExport({
+        reportId: report.id,
+        reportName: report.name,
+        format: entry.format,
+        triggeredBy: "manual",
+      })
+    } finally {
+      setDownloadingId(null)
+    }
+  }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -68,60 +96,7 @@ export function ReportPreviewSheet({
             )}
           </div>
 
-          <DataCard title="Details" bodyPadding="default">
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <SectionLabel>Author</SectionLabel>
-                <div className="mt-1.5 inline-flex items-center gap-2">
-                  <Avatar size="sm">
-                    <AvatarImage src={report.author.photo} alt={report.author.name} />
-                    <AvatarFallback className={`bg-linear-to-br ${report.author.gradient} text-white`}>
-                      {report.author.initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  {report.author.name}
-                </div>
-              </div>
-              <div>
-                <SectionLabel>Module</SectionLabel>
-                <div className="mt-1.5">{moduleLabels[report.module]}</div>
-              </div>
-              <div>
-                <SectionLabel>Created</SectionLabel>
-                <div className="mt-1.5 tabular-nums text-muted-foreground">{report.createdOn}</div>
-              </div>
-              <div>
-                <SectionLabel>Updated</SectionLabel>
-                <div className="mt-1.5 tabular-nums text-muted-foreground">{report.updatedOn}</div>
-              </div>
-            </div>
-          </DataCard>
-
-          {report.archetype === "template" && report.sections && report.sections.length > 0 && (
-            <DataCard title="Sections" count={report.sections.length} bodyPadding="none">
-              <div className="divide-y">
-                {report.sections.map((s) => {
-                  const widget = getWidgetById(s.widgetId) ?? reportWidgetCatalog[0]
-                  return (
-                    <div key={s.widgetId} className="flex items-center justify-between gap-3 px-5 py-2.5 text-sm">
-                      <span className={!s.included ? "text-muted-foreground line-through" : ""}>
-                        {widget.title}
-                      </span>
-                      <Badge variant="secondary" className="font-normal text-[10px] capitalize">
-                        {widget.type}
-                      </Badge>
-                    </div>
-                  )
-                })}
-              </div>
-            </DataCard>
-          )}
-
-          {report.archetype === "saved-export" && report.savedSearchSummary && (
-            <DataCard title="Saved scope" bodyPadding="default">
-              <p className="text-sm text-muted-foreground">{report.savedSearchSummary}</p>
-            </DataCard>
-          )}
+          <ReportSummaryCards report={report} />
 
           <DataCard title="Schedules" count={schedules.length} bodyPadding="none">
             {schedules.length === 0 ? (
@@ -174,8 +149,18 @@ export function ReportPreviewSheet({
                         {h.triggeredBy}
                       </Badge>
                     </div>
-                    <Button variant="ghost" size="icon-xs" aria-label="Download">
-                      <Download className="size-3.5" />
+                    <Button
+                      variant="ghost"
+                      size="icon-xs"
+                      aria-label="Download"
+                      disabled={downloadingId === h.id}
+                      onClick={() => handleDownloadHistoryEntry(h)}
+                    >
+                      {downloadingId === h.id ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : (
+                        <Download className="size-3.5" />
+                      )}
                     </Button>
                   </div>
                 ))}

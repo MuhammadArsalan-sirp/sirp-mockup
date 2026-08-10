@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useRef, useState, type RefObject } from "react"
 import { useLocation, useNavigate } from "react-router"
 import {
   ArrowDown,
@@ -35,6 +35,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { moduleLabels, reportTemplates, type ReportModule } from "@/data/reports"
 import { users } from "@/data/users"
 import { ScheduleDialog } from "../components/schedule-dialog"
+import { exportNodeToHtmlSnapshot, exportNodeToPdf } from "../lib/report-export"
+import { reportsBackend } from "../lib/reports-backend"
 import { BLOCK_ICON, ReportStudioPalette } from "./report-studio-palette"
 import { ReportStudioProperties } from "./report-studio-properties"
 import { StudioBlockContent } from "./report-studio-block-content"
@@ -70,6 +72,7 @@ export function ReportStudioPage() {
   const [preview, setPreview] = useState(false)
   const [scheduleOpen, setScheduleOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
+  const canvasRef = useRef<HTMLDivElement>(null)
 
   const selected = blocks.find((b) => b.id === selectedId) ?? null
   // Only one cover/title page makes sense per report — every other block type
@@ -230,7 +233,7 @@ export function ReportStudioPage() {
             </div>
 
             <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
-              <div className="px-10 py-2">
+              <div ref={canvasRef} className="px-10 py-2">
                 {blocks.map((block) => (
                   <StudioBlockRow
                     key={block.id}
@@ -289,7 +292,15 @@ export function ReportStudioPage() {
       </div>
 
       <ScheduleDialog open={scheduleOpen} onOpenChange={setScheduleOpen} report={scheduleReportStub} />
-      <ExportDialog open={exportOpen} onOpenChange={setExportOpen} />
+      <ExportDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        canvasRef={canvasRef}
+        reportId={scheduleReportStub.id}
+        reportName={reportName}
+        selectedId={selectedId}
+        setSelectedId={setSelectedId}
+      />
     </div>
   )
 }
@@ -347,22 +358,66 @@ function StudioBlockRow({
   )
 }
 
-function ExportDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+function ExportDialog({
+  open,
+  onOpenChange,
+  canvasRef,
+  reportId,
+  reportName,
+  selectedId,
+  setSelectedId,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  canvasRef: RefObject<HTMLDivElement | null>
+  reportId: string
+  reportName: string
+  selectedId: string | null
+  setSelectedId: (next: string | null) => void
+}) {
   const [format, setFormat] = useState<"pdf" | "html">("pdf")
-  const [state, setState] = useState<"idle" | "working" | "done">("idle")
+  const [state, setState] = useState<"idle" | "working" | "done" | "error">("idle")
 
   function handleOpenChange(next: boolean) {
     if (!next) setState("idle")
     onOpenChange(next)
   }
 
-  function handleExport() {
+  async function handleExport() {
+    const node = canvasRef.current
+    if (!node) {
+      setState("error")
+      return
+    }
     setState("working")
-    setTimeout(() => {
+    // Deselecting (rather than toggling preview mode) only changes a
+    // className — unlike preview mode, it doesn't unmount/remount blocks, so
+    // recharts' ResponsiveContainer never loses its measured size right
+    // before capture.
+    const previousSelectedId = selectedId
+    setSelectedId(null)
+
+    try {
+      // The deselected row's `transition-colors` border/background fade
+      // (Tailwind default ~150ms) needs to fully settle before capture, or
+      // a just-deselected block's highlight bleeds into the export.
+      await new Promise<void>((resolve) => setTimeout(resolve, 220))
+
+      const filenameBase = reportName.replace(/[^a-z0-9]+/gi, "-") || "report"
+      if (format === "pdf") {
+        await exportNodeToPdf(node, `${filenameBase}.pdf`)
+        void reportsBackend.logExport({ reportId, reportName, format: "PDF", triggeredBy: "manual" })
+      } else {
+        await exportNodeToHtmlSnapshot(node, `${filenameBase}.html`, reportName)
+      }
       setState("done")
-      if (format === "pdf") window.print()
       setTimeout(() => handleOpenChange(false), 900)
-    }, 900)
+    } catch (err) {
+      console.error("[report-studio] export failed:", err)
+      setState("error")
+    } finally {
+      setSelectedId(previousSelectedId)
+    }
   }
 
   return (
@@ -377,7 +432,18 @@ function ExportDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (op
             <span className="grid size-12 place-items-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
               <Check className="size-5" />
             </span>
-            <p className="mt-3 text-sm font-medium">{format === "pdf" ? "PDF generated" : "Shareable HTML link generated"}</p>
+            <p className="mt-3 text-sm font-medium">{format === "pdf" ? "PDF downloaded" : "HTML snapshot downloaded"}</p>
+          </div>
+        ) : state === "error" ? (
+          <div className="grid place-items-center py-8 text-center">
+            <span className="grid size-12 place-items-center rounded-full bg-destructive/10 text-destructive">
+              <FileDown className="size-5" />
+            </span>
+            <p className="mt-3 text-sm font-medium">Export failed</p>
+            <p className="mt-1 text-xs text-muted-foreground">Nothing to render, or the capture failed. Try again.</p>
+            <Button size="sm" variant="outline" className="mt-4" onClick={() => setState("idle")}>
+              Try again
+            </Button>
           </div>
         ) : (
           <>
