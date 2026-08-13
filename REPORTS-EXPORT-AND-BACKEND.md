@@ -220,3 +220,62 @@ supabase/
 - Report Studio's Excel/CSV output format is still "Coming soon" — that's
   a real product-scope decision baked into the app (a widget-based
   dashboard doesn't cleanly become a spreadsheet), not part of this fix.
+
+## 7. Getting real sending actually turned on (what we did, step by step)
+
+The code for real email sending (section 3 above) was already written, but
+it wasn't live yet — nothing had been deployed, and the Supabase CLI on
+this machine wasn't logged in. Here's what it took to get from "code
+exists" to "email actually arrives," in plain terms:
+
+1. **The CLI wasn't logged in.** `supabase login` opens a browser to
+   authenticate, but that flow doesn't complete cleanly on this machine.
+   Fix: use a **Personal Access Token** instead — a long-lived password
+   you generate once on supabase.com/dashboard/account/tokens and export
+   as `SUPABASE_ACCESS_TOKEN` in the terminal. That let the CLI talk to
+   Supabase without the browser flow.
+2. **Linked the CLI to the actual Supabase project** with
+   `supabase link --project-ref <ref>` — this just tells the CLI "when I
+   say deploy, deploy *here*."
+3. **Set the Resend API key as a secret** with `supabase secrets set
+   RESEND_API_KEY=...` — this stores it server-side, inside Supabase, not
+   in this repo and not in the browser.
+4. **Deployed the Edge Function** with `supabase functions deploy
+   send-report-email` — this uploads the actual server-side code
+   (`supabase/functions/send-report-email/index.ts`) so it's live and
+   callable.
+5. **Started the app** (`npm run dev`) so we could test the real "Send
+   report" button, not just read the code.
+6. **First real test: nothing arrived.** Instead of guessing, we called
+   the Edge Function directly with `curl` (skipping the browser entirely)
+   to see the *exact* error Resend was sending back. It said the API key
+   itself was invalid — the key stored in step 3 wasn't one Resend
+   actually recognized (most likely it had been copied with a typo, extra
+   space, or was already revoked on Resend's side).
+7. **Generated a fresh key** on resend.com/api-keys and re-ran the
+   `secrets set` command from step 3 with the new value.
+8. **Re-tested with `curl` again** — this time Resend accepted the key,
+   but rejected the specific test address we used, because Resend's
+   sandbox mode (before you verify your own sending domain) will only
+   deliver to the email address you personally signed up to Resend with.
+9. **Re-tested one more time**, targeting that exact address — Resend
+   accepted it and handed back a real message ID. Email arrived (in the
+   spam folder — expected, see below).
+10. **Confirmed through the actual UI**, not just `curl` — used the real
+    "Send report" dialog in the browser and got the email again.
+
+**Why it landed in spam:** the sender address is Resend's own shared
+sandbox address (`onboarding@resend.dev`), because no custom sending
+domain has been verified yet. This is normal for any email service before
+domain verification — it's not a bug in our code. Two options going
+forward, neither done yet:
+- Leave it as-is for demo purposes (just mention "check spam" when
+  showing it live), or
+- Verify a real sending subdomain (e.g. `demo.sirp.io`) on Resend's
+  dashboard and point `REPORT_EMAIL_FROM` at it — this both fixes spam
+  placement and removes the "only delivers to your own inbox" sandbox
+  limit.
+
+**Where things stand now:** the Edge Function is deployed and live, the
+Resend key is valid, and a real end-to-end send (browser → Edge Function
+→ Resend → inbox) has been confirmed working.
