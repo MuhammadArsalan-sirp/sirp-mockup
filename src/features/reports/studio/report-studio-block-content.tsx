@@ -1,6 +1,7 @@
 import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, Info, ShieldAlert, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
-import type { StudioBlock } from "./report-studio-types"
+import { resolveVars, type StudioBlock } from "./report-studio-types"
+import { AiBlockContent } from "./report-studio-ai-blocks"
 import { StudioBarChart, StudioDonutChart, StudioLineChart } from "./report-studio-charts"
 import {
   CALLOUT_TONE_CLASS,
@@ -16,6 +17,7 @@ import {
   STUDIO_OPEN_CASES,
   STUDIO_PLAYBOOK_RUNS,
   STUDIO_SEVERITY,
+  STUDIO_SLA_BY_TEAM,
   STUDIO_TIMELINE,
   STUDIO_TOP_IOCS,
 } from "./report-studio-mock"
@@ -55,7 +57,13 @@ function GeneratedTag() {
   )
 }
 
-export function StudioBlockContent({ block }: { block: StudioBlock }) {
+export function StudioBlockContent({
+  block,
+  vars = {},
+}: {
+  block: StudioBlock
+  vars?: Record<string, string>
+}) {
   switch (block.type) {
     case "cover": {
       const p = block.props
@@ -65,12 +73,12 @@ export function StudioBlockContent({ block }: { block: StudioBlock }) {
             <span className="size-1.5 rounded-full bg-current" />
             {p.classification}
           </span>
-          <h1 className="mt-4 max-w-[80%] text-3xl font-semibold tracking-tight">{p.title}</h1>
-          <p className="mt-2 max-w-[65ch] text-sm text-muted-foreground">{p.subtitle}</p>
+          <h1 className="mt-4 max-w-[80%] text-3xl font-semibold tracking-tight">{resolveVars(p.title, vars)}</h1>
+          <p className="mt-2 max-w-[65ch] text-sm text-muted-foreground">{resolveVars(p.subtitle, vars)}</p>
           <div className="mt-6 flex gap-8 border-t pt-4 text-xs">
             <div>
               <div className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Prepared for</div>
-              <div className="mt-1 font-medium">{p.preparedFor}</div>
+              <div className="mt-1 font-medium">{resolveVars(p.preparedFor, vars)}</div>
             </div>
             <div>
               <div className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Generated</div>
@@ -84,14 +92,22 @@ export function StudioBlockContent({ block }: { block: StudioBlock }) {
       return (
         <div className="flex items-center gap-2.5 py-1.5">
           <span className="h-5 w-1 shrink-0 rounded-full bg-primary" />
-          <span className="text-lg font-semibold tracking-tight">{block.props.text}</span>
+          <span className="text-lg font-semibold tracking-tight">{resolveVars(block.props.text, vars)}</span>
         </div>
       )
     case "text":
       return (
         <div className="py-1">
           {block.props.generated && <GeneratedTag />}
-          <p className="max-w-[65ch] text-sm leading-relaxed text-muted-foreground">{block.props.text}</p>
+          <p
+            dir={block.ai?.locale === "ar" ? "rtl" : undefined}
+            className={cn(
+              "max-w-[65ch] text-sm leading-relaxed text-muted-foreground",
+              block.ai?.locale === "ar" && "text-right"
+            )}
+          >
+            {resolveVars(block.props.text, vars)}
+          </p>
         </div>
       )
     case "callout": {
@@ -100,8 +116,8 @@ export function StudioBlockContent({ block }: { block: StudioBlock }) {
         <div className={cn("flex gap-2.5 rounded-lg border p-3.5", CALLOUT_TONE_CLASS[block.props.tone])}>
           <Icon className="mt-0.5 size-4 shrink-0" />
           <div>
-            <div className="text-sm font-semibold">{block.props.title}</div>
-            <p className="mt-0.5 text-xs leading-relaxed opacity-90">{block.props.text}</p>
+            <div className="text-sm font-semibold">{resolveVars(block.props.title, vars)}</div>
+            <p className="mt-0.5 text-xs leading-relaxed opacity-90">{resolveVars(block.props.text, vars)}</p>
           </div>
         </div>
       )
@@ -125,7 +141,7 @@ export function StudioBlockContent({ block }: { block: StudioBlock }) {
       const data = CHART_DATASETS[block.props.dataset]
       return (
         <div className="rounded-lg border bg-card p-4">
-          <div className="mb-2 text-sm font-medium">{block.props.title}</div>
+          <div className="mb-2 text-sm font-medium">{resolveVars(block.props.title, vars)}</div>
           {block.props.chartType === "donut" ? (
             <StudioDonutChart data={data as { label: string; value: number; color: string }[]} />
           ) : block.props.chartType === "bar" ? (
@@ -137,10 +153,12 @@ export function StudioBlockContent({ block }: { block: StudioBlock }) {
       )
     }
     case "table": {
+      if (block.props.dataset === "slaByTeam")
+        return <SlaByTeamTable title={resolveVars(block.props.title, vars)} threshold={block.data?.threshold} />
       const isCases = block.props.dataset === "openCases"
       return (
         <div className="rounded-lg border bg-card p-4">
-          <div className="mb-2 text-sm font-medium">{block.props.title}</div>
+          <div className="mb-2 text-sm font-medium">{resolveVars(block.props.title, vars)}</div>
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b text-left text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
@@ -193,7 +211,7 @@ export function StudioBlockContent({ block }: { block: StudioBlock }) {
     case "mitre":
       return (
         <div className="rounded-lg border bg-card p-4">
-          <div className="mb-3 text-sm font-medium">{block.props.title}</div>
+          <div className="mb-3 text-sm font-medium">{resolveVars(block.props.title, vars)}</div>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
             {STUDIO_MITRE.map((m) => (
               <div key={m.id} className="rounded-md border bg-muted/40 p-2 text-center">
@@ -211,7 +229,7 @@ export function StudioBlockContent({ block }: { block: StudioBlock }) {
     case "timeline":
       return (
         <div className="rounded-lg border bg-card p-4">
-          <div className="mb-3 text-sm font-medium">{block.props.title}</div>
+          <div className="mb-3 text-sm font-medium">{resolveVars(block.props.title, vars)}</div>
           <div className="space-y-4 border-l pl-4">
             {STUDIO_TIMELINE.map((t) => (
               <div key={t.time} className="relative">
@@ -232,7 +250,7 @@ export function StudioBlockContent({ block }: { block: StudioBlock }) {
     case "entities":
       return (
         <div className="rounded-lg border bg-card p-4">
-          <div className="mb-2 text-sm font-medium">{block.props.title}</div>
+          <div className="mb-2 text-sm font-medium">{resolveVars(block.props.title, vars)}</div>
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b text-left text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
@@ -262,7 +280,7 @@ export function StudioBlockContent({ block }: { block: StudioBlock }) {
     case "playbooks":
       return (
         <div className="rounded-lg border bg-card p-4">
-          <div className="mb-2 text-sm font-medium">{block.props.title}</div>
+          <div className="mb-2 text-sm font-medium">{resolveVars(block.props.title, vars)}</div>
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b text-left text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
@@ -294,6 +312,47 @@ export function StudioBlockContent({ block }: { block: StudioBlock }) {
     case "spacer":
       return <div style={{ height: block.props.height }} />
     default:
-      return null
+      return <AiBlockContent block={block} vars={vars} />
   }
+}
+
+/**
+ * SLA attainment per team — the one table an auditor always asks for. Rows at
+ * or below the block's threshold are called out rather than left to be spotted.
+ */
+function SlaByTeamTable({ title, threshold }: { title: string; threshold?: number }) {
+  const floor = threshold ?? 90
+  return (
+    <div className="rounded-lg border bg-card p-4">
+      <div className="mb-2 flex items-center justify-between">
+        <div className="text-sm font-medium">{title}</div>
+        <span className="font-mono text-[10px] text-muted-foreground">target {floor}%</span>
+      </div>
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="border-b text-left text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+            <th className="pb-2 pr-2">Team</th>
+            <th className="pb-2 pr-2 text-right">Incidents</th>
+            <th className="pb-2 pr-2 text-right">Breaches</th>
+            <th className="pb-2 text-right">Attainment</th>
+          </tr>
+        </thead>
+        <tbody>
+          {STUDIO_SLA_BY_TEAM.map((row) => {
+            const under = row.attainment < floor
+            return (
+              <tr key={row.team} className="border-b last:border-0">
+                <td className="py-2 pr-2 font-medium">{row.team}</td>
+                <td className="py-2 pr-2 text-right font-mono tabular-nums">{row.incidents}</td>
+                <td className="py-2 pr-2 text-right font-mono tabular-nums">{row.breaches}</td>
+                <td className={cn("py-2 text-right font-mono tabular-nums", under && "text-amber-600 dark:text-amber-400")}>
+                  {row.attainment.toFixed(1)}%
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+  )
 }

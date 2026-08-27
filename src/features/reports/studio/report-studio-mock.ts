@@ -110,3 +110,10 @@ export const CALLOUT_TONE_CLASS: Record<"info" | "warning" | "success" | "alert"
   success: "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
   alert: "border-destructive/25 bg-destructive/10 text-destructive",
 }
+
+export const STUDIO_SLA_BY_TEAM = [
+  { team: "Tier 1 triage", incidents: 84, breaches: 3, attainment: 96.4 },
+  { team: "Tier 2 investigation", incidents: 34, breaches: 3, attainment: 91.2 },
+  { team: "Incident response", incidents: 15, breaches: 2, attainment: 88.7 },
+  { team: "Threat intel", incidents: 6, breaches: 0, attainment: 100 },
+]
