@@ -4,15 +4,20 @@ import { TemplatesTab } from "./tabs/templates-tab"
 import { SavedExportsTab } from "./tabs/saved-exports-tab"
 import { ScheduledTab } from "./tabs/scheduled-tab"
 import { HistoryTab } from "./tabs/history-tab"
+import { ApprovalsTab } from "./delivery/approvals-tab"
+import { SpecTab } from "./spec/spec-tab"
+import { NotesToggle } from "./spec/annotations"
 
-type TabKey = "overview" | "templates" | "saved-exports" | "scheduled" | "history"
+type TabKey = "overview" | "templates" | "saved-exports" | "scheduled" | "approvals" | "history" | "spec"
 
 const VALID: Set<TabKey> = new Set([
   "overview",
   "templates",
   "saved-exports",
   "scheduled",
+  "approvals",
   "history",
+  "spec",
 ])
 
 export function ReportsPage() {
@@ -28,7 +33,10 @@ export function ReportsPage() {
       {active === "templates" && <TemplatesTab />}
       {active === "saved-exports" && <SavedExportsTab />}
       {active === "scheduled" && <ScheduledTab />}
+      {active === "approvals" && <ApprovalsTab />}
       {active === "history" && <HistoryTab />}
+      {active === "spec" && <SpecTab />}
+      {active !== "spec" && <NotesToggle />}
     </>
   )
 }

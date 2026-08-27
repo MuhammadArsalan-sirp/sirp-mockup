@@ -19,6 +19,7 @@ import {
   type ReportWidgetType,
 } from "@/data/reports"
 import { ReportsTable } from "../components/reports-table"
+import { Annotate } from "../spec/annotations"
 import { useReportDialogs } from "../components/use-report-dialogs"
 
 const WIDGET_TYPE_ICON: Record<ReportWidgetType, typeof BarChart3> = {
@@ -54,6 +55,7 @@ export function TemplatesTab() {
       <PageHeader
         title="Templates"
         description="Starter layouts — pick one to pre-fill sections, branding, and module scope."
+        actions={<Annotate id="sp-templates" />}
       />
 
       <div className="flex flex-col gap-3 rounded-xl border border-dashed border-primary/40 bg-linear-to-r from-primary/10 via-primary/5 to-card p-4 sm:flex-row sm:items-center sm:justify-between">

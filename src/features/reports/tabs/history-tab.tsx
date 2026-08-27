@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataCard } from "@/features/administration-modern/admin-ui"
 import { getReportById, reportHistory, type Report, type ReportHistoryEntry } from "@/data/reports"
+import { Annotate } from "../spec/annotations"
 
 type HistoryRow = { history: ReportHistoryEntry; report: Report }
 
@@ -19,7 +20,11 @@ export function HistoryTab() {
 
   return (
     <div className="space-y-5">
-      <PageHeader title="History" description="Every past generation run, manual or scheduled." />
+      <PageHeader
+        title="History"
+        description="Every past generation run, manual or scheduled."
+        actions={<Annotate id="sp-history" />}
+      />
 
       <DataCard bodyPadding="none">
         <div className="divide-y">

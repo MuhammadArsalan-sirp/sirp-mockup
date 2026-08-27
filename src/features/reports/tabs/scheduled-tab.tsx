@@ -5,6 +5,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataCard } from "@/features/administration-modern/admin-ui"
 import { getReportById, reportSchedules, type Report, type ReportSchedule } from "@/data/reports"
+import { audienceVariants } from "@/data/reports-ai"
+import { Annotate } from "../spec/annotations"
 import { ScheduleDialog } from "../components/schedule-dialog"
 import { ReportTypeBadge } from "../components/report-columns"
 
@@ -33,7 +35,43 @@ export function ScheduledTab() {
       <PageHeader
         title="Scheduled"
         description="Every recurring delivery across templates and saved exports, in one list."
+        actions={<Annotate id="sp-schedule-all" />}
       />
+
+      <section className="rounded-xl border bg-card">
+        <div className="flex items-center gap-2 border-b px-5 py-3">
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-semibold">Audience variants</div>
+            <p className="text-[11px] text-muted-foreground">
+              One report, several cuts. A schedule delivers the variant its recipients are entitled to — the executive
+              cut and the analyst cut are the same document, rendered differently.
+            </p>
+          </div>
+          <Annotate id="sp-variants" />
+        </div>
+        <ul className="grid divide-y sm:grid-cols-2 sm:divide-y-0">
+          {audienceVariants.map((variant) => (
+            <li key={variant.id} className="border-b px-5 py-3 last:border-b-0 sm:border-b">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">{variant.label}</span>
+                <span className="rounded-full border px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+                  ~{variant.pageTarget}pp
+                </span>
+              </div>
+              <p className="mt-0.5 text-xs text-muted-foreground">{variant.description}</p>
+              {variant.omits.length > 0 && (
+                <div className="mt-1.5 flex flex-wrap gap-1">
+                  {variant.omits.map((omit) => (
+                    <span key={omit} className="rounded-full border px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                      omits {omit.toLowerCase()}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <DataCard bodyPadding="none">
         <div className="divide-y">
