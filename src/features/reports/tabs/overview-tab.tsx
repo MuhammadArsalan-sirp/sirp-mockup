@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router"
 import { CalendarClock, FileStack, Lock, PenLine, Plus, RefreshCw, Search, Sparkles, TriangleAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { PageHeader } from "@/components/shared/page-header"
 import { KpiCard } from "@/components/shared/kpi-card"
 import { reportHistory, reports } from "@/data/reports"
+import { toReportRow, useReportsStore } from "@/stores/reports-store"
 import { ReportsTable } from "../components/reports-table"
 import { useReportDialogs } from "../components/use-report-dialogs"
 import { Annotate } from "../spec/annotations"
@@ -24,11 +25,16 @@ export function OverviewTab() {
   const { handlers, openCreate, dialogs } = useReportDialogs()
 
   const demoState = params.get("state")
-  const filtered = reports.filter((r) => (query ? r.name.toLowerCase().includes(query.toLowerCase()) : true))
+  const savedReports = useReportsStore((s) => s.reports)
+
+  // Definitions saved from the Studio lead the list — they're what the person
+  // was just working on, and they're the only rows that reopen with their blocks.
+  const allReports = useMemo(() => [...savedReports.map(toReportRow), ...reports], [savedReports])
+  const filtered = allReports.filter((r) => (query ? r.name.toLowerCase().includes(query.toLowerCase()) : true))
 
   // Aggregate KPIs — counted client-side; there is no /report/stats on demo3.
-  const scheduledCount = reports.filter((r) => r.isScheduled).length
-  const draftCount = reports.filter((r) => r.status === "draft").length
+  const scheduledCount = allReports.filter((r) => r.isScheduled).length
+  const draftCount = allReports.filter((r) => r.status === "draft").length
   const generatedThisMonth = reportHistory.filter((h) => h.generatedAt.startsWith("Jul")).length
 
   if (demoState === "denied") return <DeniedState />
@@ -58,7 +64,7 @@ export function OverviewTab() {
       ) : (
         <>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <KpiCard icon={<FileStack className="size-4" />} label="Total reports" value={demoState === "empty" ? 0 : reports.length} caption="Templates + saved exports" />
+            <KpiCard icon={<FileStack className="size-4" />} label="Total reports" value={demoState === "empty" ? 0 : allReports.length} caption="Templates + saved exports" />
             <KpiCard icon={<CalendarClock className="size-4" />} label="Scheduled" value={demoState === "empty" ? 0 : scheduledCount} trendTone="info" caption="Delivering on a recurrence" />
             <KpiCard icon={<Sparkles className="size-4" />} label="Generated · July" value={demoState === "empty" ? 0 : generatedThisMonth} trendTone="success" caption="Manual + scheduled runs" />
             <KpiCard icon={<PenLine className="size-4" />} label="Drafts" value={demoState === "empty" ? 0 : draftCount} trendTone="muted" caption="Not yet published" />

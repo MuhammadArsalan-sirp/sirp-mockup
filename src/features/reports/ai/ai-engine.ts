@@ -91,6 +91,7 @@ const AUDIENCE_SECTIONS: Record<ComposeAudience, SectionSpec[]> = {
     { blockType: "chart", title: "Incidents over time", why: "One trend chart carries the volume story without a table." },
     { blockType: "anomalies", title: "Anomalies worth your attention", why: "Surfaces the VPN campaign that drove the volume rise." },
     { blockType: "text", title: "Recommendations", why: "Closes with actions rather than observations." },
+    { blockType: "table", title: "Top indicators of compromise", why: "Appendix for whoever reads past page one — dropped if you ask for a one-pager." },
   ],
   analyst: [
     { blockType: "chart", title: "Incidents over time", why: "Volume trend across the window." },
@@ -207,7 +208,7 @@ export function refineFromPrompt(prompt: string, blocks: StudioBlock[]): RefineR
     changes.push({
       op: "document",
       label: "Set page target to 1",
-      detail: "Layout tightens and the appendix is dropped.",
+      detail: victims.length ? "Layout tightens and the appendix is dropped." : "Layout tightens; nothing else to remove.",
       patch: { pageTarget: 1 },
     })
     return {

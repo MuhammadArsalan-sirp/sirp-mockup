@@ -75,6 +75,7 @@ export function AuthorCell({ author }: { author: Report["author"] }) {
 export type ReportRowHandlers = {
   onPreview: (report: Report) => void
   onEdit: (report: Report) => void
+  onOpenStudio: (report: Report) => void
   onSchedule: (report: Report) => void
   onSendNow: (report: Report) => void
 }
@@ -220,6 +221,9 @@ export function createReportColumns(handlers: ReportRowHandlers): ColumnDef<Repo
               onClick={(e) => e.stopPropagation()}
             >
               <DropdownMenuItem onClick={() => handlers.onPreview(report)}>Preview</DropdownMenuItem>
+              {!isExcel && (
+                <DropdownMenuItem onClick={() => handlers.onOpenStudio(report)}>Open in Studio</DropdownMenuItem>
+              )}
               {!isExcel && (
                 <DropdownMenuItem onClick={() => handlers.onEdit(report)}>Edit</DropdownMenuItem>
               )}

@@ -90,13 +90,12 @@ export function CoAnalystDock({
   }
 
   function decide(turnId: string, decision: "applied" | "discarded") {
-    setTurns((prev) =>
-      prev.map((t) => {
-        if (t.id !== turnId) return t
-        if (decision === "applied" && t.changes) onApply(t.changes)
-        return { ...t, status: decision }
-      })
-    )
+    // Apply outside the state updater: React runs updaters during the render
+    // phase, and onApply writes to the Studio's state — doing it inside is a
+    // cross-component setState during render.
+    const turn = turns.find((t) => t.id === turnId)
+    if (decision === "applied" && turn?.changes) onApply(turn.changes)
+    setTurns((prev) => prev.map((t) => (t.id === turnId ? { ...t, status: decision } : t)))
   }
 
   return (

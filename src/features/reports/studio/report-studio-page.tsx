@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState, type RefObject } from "react"
-import { useLocation, useNavigate } from "react-router"
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react"
+import { useLocation, useNavigate, useSearchParams } from "react-router"
 import {
   ArrowDown,
   ArrowLeft,
@@ -11,6 +11,7 @@ import {
   Eye,
   FileDown,
   Plus,
+  Save,
   Settings2,
   ShieldCheck,
   Sparkles,
@@ -35,7 +36,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { moduleLabels, reportTemplates, type ReportModule } from "@/data/reports"
+import { moduleLabels, reportTemplates, type Report, type ReportModule } from "@/data/reports"
+import { useReportsStore } from "@/stores/reports-store"
 import { seedLibraryBlocks, type LibraryBlock } from "@/data/reports-ai"
 import { users } from "@/data/users"
 import { ScheduleDialog } from "../components/schedule-dialog"
@@ -66,7 +68,7 @@ import {
   type TextProps,
 } from "./report-studio-types"
 
-type StudioLocationState = { templateId?: string; plan?: ComposePlan } | null
+type StudioLocationState = { templateId?: string; plan?: ComposePlan; report?: Report } | null
 
 /** Page width in px at 96dpi, so the canvas is the shape of the paper it prints on. */
 const PAGE_WIDTH: Record<string, number> = { "A4-portrait": 794, "A4-landscape": 1123, "Letter-portrait": 816, "Letter-landscape": 1056 }
@@ -104,19 +106,41 @@ export function ReportStudioPage() {
   const state = location.state as StudioLocationState
   const template = state?.templateId ? reportTemplates.find((t) => t.id === state.templateId) : undefined
   const plan = state?.plan
+  const fixture = state?.report
+
+  const [searchParams, setSearchParams] = useSearchParams()
+  const saveDefinition = useReportsStore((s) => s.save)
+  const publishDefinition = useReportsStore((s) => s.publish)
+  const addEdition = useReportsStore((s) => s.addEdition)
+  // Read once on mount: later store writes must not clobber what's being edited.
+  const [existing] = useState(() => {
+    const id = searchParams.get("id")
+    return id ? useReportsStore.getState().get(id) : undefined
+  })
 
   const [blocks, setBlocks] = useState<StudioBlock[]>(() => {
+    if (existing) return existing.blocks
     if (plan) return blocksFromPlan(plan.sections)
     if (template) return blocksFromTemplateWidgets(template.widgetIds, template.name, template.description)
+    if (fixture?.sections?.length)
+      return blocksFromTemplateWidgets(fixture.sections.map((s) => s.widgetId), fixture.name, fixture.description ?? "")
     return blankBlocks()
   })
   const [doc, setDoc] = useState<DocSettings>(() => {
     const base = defaultDocSettings()
+    if (existing) return existing.doc
     if (plan) return { ...base, module: plan.module, timeRange: plan.period, pageTarget: plan.pageTarget }
     if (template) return { ...base, module: template.module }
+    if (fixture) return { ...base, module: fixture.module }
     return base
   })
-  const [reportName, setReportName] = useState(plan ? planTitle(plan) : (template?.name ?? "Untitled report"))
+  const [reportName, setReportName] = useState(
+    existing?.name ?? (plan ? planTitle(plan) : (template?.name ?? fixture?.name ?? "Untitled report"))
+  )
+  const [savedId, setSavedId] = useState<string | null>(existing?.id ?? null)
+  const [status, setStatus] = useState<"draft" | "published">(existing?.status ?? "draft")
+  const [savedAt, setSavedAt] = useState<number | null>(existing?.savedAt ?? null)
+  const [dirty, setDirty] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [preview, setPreview] = useState(false)
   const [reviewMode, setReviewMode] = useState(false)
@@ -127,6 +151,40 @@ export function ReportStudioPage() {
   const [library, setLibrary] = useState<LibraryBlock[]>(seedLibraryBlocks)
   const [undoStack, setUndoStack] = useState<StudioBlock[][]>([])
   const canvasRef = useRef<HTMLDivElement>(null)
+
+  // Anything that changes the document marks it dirty; the first render doesn't.
+  const firstRender = useRef(true)
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false
+      return
+    }
+    setDirty(true)
+  }, [blocks, doc, reportName])
+
+  // Autosave, but only once the author has saved deliberately — an untitled
+  // scratch document shouldn't litter the list just because someone opened it.
+  useEffect(() => {
+    if (!dirty || !savedId) return
+    const timer = setTimeout(() => persist(savedId), 1200)
+    return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dirty, savedId, blocks, doc, reportName])
+
+  function persist(id: string | null): string {
+    const nextId = saveDefinition({ id, name: reportName, module: doc.module, blocks, doc })
+    setSavedId(nextId)
+    setSavedAt(Date.now())
+    setDirty(false)
+    if (!id) setSearchParams({ id: nextId }, { replace: true })
+    return nextId
+  }
+
+  function handlePublish() {
+    const id = persist(savedId)
+    publishDefinition(id)
+    setStatus("published")
+  }
 
   const selected = blocks.find((b) => b.id === selectedId) ?? null
   const hasCover = blocks.some((b) => b.type === "cover")
@@ -318,6 +376,19 @@ export function ReportStudioPage() {
           onChange={(e) => setReportName(e.target.value)}
           className="h-8 min-w-40 max-w-72 rounded-md border border-transparent bg-transparent px-2 text-sm font-semibold outline-none transition-colors hover:border-border focus:border-primary/40 focus:bg-accent/40"
         />
+        <span
+          className={cn(
+            "shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium capitalize",
+            status === "published"
+              ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+              : "text-muted-foreground"
+          )}
+        >
+          {status}
+        </span>
+        <span className="hidden shrink-0 font-mono text-[10px] text-muted-foreground sm:inline">
+          {dirty ? "Unsaved changes" : savedAt ? "All changes saved" : "Not saved yet"}
+        </span>
         <span className="flex-1" />
 
         {!preview && (
@@ -362,7 +433,16 @@ export function ReportStudioPage() {
               <Sparkles className="size-3.5" />
               Co-Analyst
             </Button>
-            <Button size="sm" variant="outline" onClick={() => setScheduleOpen(true)}>Schedule</Button>
+            <Button size="sm" variant="outline" onClick={() => setScheduleOpen(true)} disabled={!savedId} title={savedId ? undefined : "Save the report before scheduling it"}>
+              Schedule
+            </Button>
+            <Button size="sm" variant={dirty || !savedId ? "default" : "outline"} onClick={() => persist(savedId)}>
+              <Save className="size-3.5" />
+              Save
+            </Button>
+            {status === "draft" && (
+              <Button size="sm" variant="outline" onClick={handlePublish}>Publish</Button>
+            )}
           </>
         )}
         <Button size="sm" onClick={() => setExportOpen(true)}>
@@ -526,6 +606,10 @@ export function ReportStudioPage() {
         setSelectedId={setSelectedId}
         pageCount={pages.length}
         unreviewed={unreviewed}
+        onExported={(format) => {
+          const id = persist(savedId)
+          addEdition(id, { trigger: "manual", format, blockCount: blocks.length })
+        }}
       />
     </div>
   )
@@ -689,6 +773,7 @@ function ExportDialog({
   setSelectedId,
   pageCount,
   unreviewed,
+  onExported,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -699,6 +784,7 @@ function ExportDialog({
   setSelectedId: (next: string | null) => void
   pageCount: number
   unreviewed: number
+  onExported: (format: "PDF" | "HTML") => void
 }) {
   const [format, setFormat] = useState<"pdf" | "html">("pdf")
   const [state, setState] = useState<"idle" | "working" | "done" | "error">("idle")
@@ -735,6 +821,7 @@ function ExportDialog({
       } else {
         await exportNodeToHtmlSnapshot(node, `${filenameBase}.html`, reportName)
       }
+      onExported(format === "pdf" ? "PDF" : "HTML")
       setState("done")
       setTimeout(() => handleOpenChange(false), 900)
     } catch (err) {
