@@ -43,7 +43,7 @@ export function StudioLineChart({ data }: { data: SeriesPoint[] }) {
           <XAxis dataKey="label" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
           <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} width={28} />
           <Tooltip contentStyle={tooltipStyle} />
-          <Area type="monotone" dataKey="value" stroke={C.c2} strokeWidth={1.75} fill={`url(#${gradientId})`} />
+          <Area type="monotone" dataKey="value" stroke={C.c2} strokeWidth={1.75} fill={`url(#${gradientId})`} isAnimationActive={false} />
         </ComposedChart>
       </ResponsiveContainer>
     </div>
@@ -59,7 +59,7 @@ export function StudioBarChart({ data }: { data: SeriesPoint[] }) {
           <XAxis dataKey="label" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
           <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} width={28} />
           <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "var(--accent)", opacity: 0.4 }} />
-          <Bar dataKey="value" fill={C.c2} radius={[3, 3, 0, 0]} />
+          <Bar dataKey="value" fill={C.c2} radius={[3, 3, 0, 0]} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -71,7 +71,7 @@ export function StudioDonutChart({ data }: { data: SliceDatum[] }) {
     <div className="flex h-44 items-center gap-5">
       <ResponsiveContainer width="55%" height="100%">
         <PieChart>
-          <Pie data={data} dataKey="value" nameKey="label" cx="50%" cy="50%" innerRadius={46} outerRadius={64} paddingAngle={2} stroke="var(--card)" strokeWidth={2}>
+          <Pie data={data} dataKey="value" nameKey="label" cx="50%" cy="50%" innerRadius={46} outerRadius={64} paddingAngle={2} stroke="var(--card)" strokeWidth={2} isAnimationActive={false}>
             {data.map((entry) => (
               <Cell key={entry.label} fill={entry.color} />
             ))}
