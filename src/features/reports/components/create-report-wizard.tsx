@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useNavigate } from "react-router"
 import {
   ArrowDown,
   ArrowLeft,
@@ -35,8 +36,12 @@ import { cn } from "@/lib/utils"
 
 /** Sentinel `templateId` meaning "skip the preset gallery, build sections from a blank canvas." */
 export const CUSTOM_TEMPLATE_ID = "custom"
+import { useReportsStore } from "@/stores/reports-store"
+import { blocksFromPlan, defaultDocSettings } from "../studio/report-studio-types"
+import { widgetBlockType } from "../studio/widget-block-type"
 import {
   coverPages,
+  getWidgetById,
   moduleLabels,
   reportTemplates,
   reportWidgetCatalog,
@@ -79,6 +84,7 @@ export function CreateReportWizard({
   initialStep = 1,
 }: Props) {
   const isEdit = !!report
+  const navigate = useNavigate()
   const [step, setStep] = useState<1 | 2 | 3>(initialStep)
   const [archetype, setArchetype] = useState<ReportArchetype>(report?.archetype ?? "template")
   const [format, setFormat] = useState<ReportFormat>(report?.format ?? "PDF")
@@ -168,9 +174,22 @@ export function CreateReportWizard({
     setSections((prev) => prev.filter((_, i) => i !== index))
   }
 
+  /** Creates a real draft from the wizard's fields and opens it in the Studio. */
   function handleSubmit() {
     setSubmitted(true)
-    setTimeout(() => handleOpenChange(false), 900)
+    const doc = { ...defaultDocSettings(), module: moduleSel }
+    const blocks = blocksFromPlan([
+      { blockType: "cover", title: name || "Untitled report", included: true },
+      { blockType: "execSummary", title: "Executive summary", included: true },
+      ...sections
+        .filter((s) => s.included)
+        .map((s) => ({ blockType: widgetBlockType(s.widgetId), title: getWidgetById(s.widgetId)?.title ?? "Section", included: true })),
+    ])
+    const id = useReportsStore.getState().save({ name: name || "Untitled report", module: moduleSel, blocks, doc })
+    setTimeout(() => {
+      handleOpenChange(false)
+      navigate(`/reports/studio?id=${id}`)
+    }, 700)
   }
 
   // "Build your own" enters with templateId === CUSTOM_TEMPLATE_ID — it never
@@ -234,7 +253,7 @@ export function CreateReportWizard({
                   <div className="rounded-lg border bg-primary/5 p-3">
                     <Label className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                       <Sparkles className="size-3.5 text-primary" />
-                      Draft with SARA
+                      Draft with the Co-Analyst
                     </Label>
                     <div className="mt-2 flex gap-2">
                       <Input

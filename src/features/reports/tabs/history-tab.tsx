@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataCard } from "@/features/administration-modern/admin-ui"
 import { getReportById, reportHistory, type Report, type ReportHistoryEntry } from "@/data/reports"
+import { Annotate } from "../spec/annotations"
+import { useReportsStore } from "@/stores/reports-store"
 
 type HistoryRow = { history: ReportHistoryEntry; report: Report }
 
@@ -12,6 +14,9 @@ type HistoryRow = { history: ReportHistoryEntry; report: Report }
  * was frontend-only and never had backend support on either branch.
  */
 export function HistoryTab() {
+  const savedReports = useReportsStore((s) => s.reports)
+  const editions = savedReports.flatMap((r) => r.editions.map((e) => ({ edition: e, report: r })))
+
   const rows: HistoryRow[] = reportHistory
     .map((h) => ({ history: h, report: getReportById(h.reportId) }))
     .filter((r): r is HistoryRow => !!r.report)
@@ -19,10 +24,34 @@ export function HistoryTab() {
 
   return (
     <div className="space-y-5">
-      <PageHeader title="History" description="Every past generation run, manual or scheduled." />
+      <PageHeader
+        title="History"
+        description="Every past generation run, manual or scheduled."
+        actions={<Annotate id="sp-history" />}
+      />
 
       <DataCard bodyPadding="none">
         <div className="divide-y">
+          {editions.map(({ edition, report }) => (
+            <div key={edition.id} className="flex flex-wrap items-center gap-4 px-5 py-3.5">
+              <div className="grid size-8 shrink-0 place-items-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
+                <FileText className="size-3.5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-medium">{report.name}</div>
+                <div className="mt-0.5 text-xs text-muted-foreground">
+                  {edition.generatedAt} · {edition.blockCount} sections
+                </div>
+              </div>
+              <Badge variant="outline" className="font-normal text-[10px] capitalize">
+                {edition.trigger}
+              </Badge>
+              <span className="w-16 text-right font-mono text-xs text-muted-foreground">{edition.format}</span>
+              <Button variant="ghost" size="icon-sm" aria-label="Download">
+                <Download className="size-3.5" />
+              </Button>
+            </div>
+          ))}
           {rows.map(({ history, report }) => {
             const FormatIcon = history.format === "EXCEL" ? FileSpreadsheet : FileText
             return (
@@ -46,7 +75,7 @@ export function HistoryTab() {
               </div>
             )
           })}
-          {rows.length === 0 && (
+          {rows.length === 0 && editions.length === 0 && (
             <div className="px-5 py-8 text-center text-sm text-muted-foreground">
               Nothing generated yet.
             </div>

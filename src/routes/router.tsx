@@ -11,6 +11,7 @@ import { EntitiesPage } from "@/features/entities/entities-page"
 import { EntityDetailPage } from "@/features/entities/detail/entity-detail-page"
 import { ReportsPage } from "@/features/reports/reports-page"
 import { ReportStudioPage } from "@/features/reports/studio/report-studio-page"
+import { ReportComposePage } from "@/features/reports/ai/report-compose-page"
 import { AutonomyPage } from "@/features/autonomy/autonomy-page"
 import { DesignSystemLayout } from "@/features/design-system/design-system-layout"
 import { OverviewPage as DesignOverviewPage } from "@/features/design-system/pages/overview"
@@ -87,6 +88,7 @@ export const router = createBrowserRouter([
       { path: "entities", element: <EntitiesPage /> },
       { path: "entities/:id", element: <EntityDetailPage /> },
       { path: "reports", element: <ReportsPage /> },
+      { path: "reports/new", element: <ReportComposePage /> },
       { path: "reports/:tab", element: <ReportsPage /> },
       { path: "autonomy", element: <AutonomyPage /> },
       { path: "autonomy/:tab", element: <AutonomyPage /> },

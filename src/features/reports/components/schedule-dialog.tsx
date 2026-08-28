@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Check } from "lucide-react"
+import { Check, Loader2 } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { getSchedulesForReport, type Report } from "@/data/reports"
 import { users } from "@/data/users"
+import { reportsBackend } from "../lib/reports-backend"
 import { ScheduleForm, DEFAULT_SCHEDULE_VALUE, type ScheduleFormValue } from "./schedule-form"
 
 /**
@@ -57,11 +58,31 @@ function scheduleToFormValue(reportId: string): ScheduleFormValue {
 
 function ScheduleDialogBody({ report, onDone }: { report: Report; onDone: () => void }) {
   const [value, setValue] = useState<ScheduleFormValue>(() => scheduleToFormValue(report.id))
-  const [saved, setSaved] = useState(false)
+  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle")
 
-  function handleSave() {
-    setSaved(true)
-    setTimeout(onDone, 800)
+  async function handleSave() {
+    setStatus("saving")
+    try {
+      const recipients = value.recipientIds.map((id) => users[id]).filter(Boolean)
+      await reportsBackend.saveSchedule({
+        report,
+        frequency: value.frequency,
+        hourSlot: value.hourSlot,
+        dayOfMonth: value.dayOfMonth,
+        weekday: value.weekday,
+        dateRange: value.dateRange,
+        intervalDays: value.intervalDays,
+        timezone: value.timezone,
+        recipients,
+        emailSubject: value.emailSubject,
+        emailContent: value.emailContent,
+        deliveryChannel: value.deliveryChannel,
+      })
+      setStatus("saved")
+      setTimeout(onDone, 800)
+    } catch {
+      setStatus("error")
+    }
   }
 
   return (
@@ -72,7 +93,7 @@ function ScheduleDialogBody({ report, onDone }: { report: Report; onDone: () => 
           Recipients are sourced from the company directory below — {Object.keys(users).length} analysts available.
         </DialogDescription>
       </DialogHeader>
-      {saved ? (
+      {status === "saved" ? (
         <div className="grid place-items-center py-10 text-center">
           <span className="grid size-12 place-items-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
             <Check className="size-5" />
@@ -82,8 +103,12 @@ function ScheduleDialogBody({ report, onDone }: { report: Report; onDone: () => 
       ) : (
         <>
           <ScheduleForm value={value} onChange={setValue} />
+          {status === "error" && (
+            <p className="text-sm text-destructive">Couldn't save the schedule — check your connection and try again.</p>
+          )}
           <DialogFooter className="mt-2">
-            <Button size="sm" className="sm:ml-auto" onClick={handleSave}>
+            <Button size="sm" className="sm:ml-auto" disabled={status === "saving"} onClick={handleSave}>
+              {status === "saving" && <Loader2 className="size-3.5 animate-spin" />}
               Save schedule
             </Button>
           </DialogFooter>

@@ -11,6 +11,7 @@ import { useNavigate } from "react-router"
 import { cn } from "@/lib/utils"
 import { PageHeader } from "@/components/shared/page-header"
 import { Button } from "@/components/ui/button"
+import { templateVersions } from "@/data/reports-ai"
 import {
   getWidgetById,
   moduleLabels,
@@ -19,6 +20,7 @@ import {
   type ReportWidgetType,
 } from "@/data/reports"
 import { ReportsTable } from "../components/reports-table"
+import { Annotate } from "../spec/annotations"
 import { useReportDialogs } from "../components/use-report-dialogs"
 
 const WIDGET_TYPE_ICON: Record<ReportWidgetType, typeof BarChart3> = {
@@ -54,6 +56,7 @@ export function TemplatesTab() {
       <PageHeader
         title="Templates"
         description="Starter layouts — pick one to pre-fill sections, branding, and module scope."
+        actions={<Annotate id="sp-templates" />}
       />
 
       <div className="flex flex-col gap-3 rounded-xl border border-dashed border-primary/40 bg-linear-to-r from-primary/10 via-primary/5 to-card p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -115,12 +118,53 @@ export function TemplatesTab() {
                   <ArrowRight className="size-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                 </div>
                 <div className="text-sm font-medium leading-tight">{t.name}</div>
-                <div className="text-[11px] text-muted-foreground">
-                  {t.widgetIds.length} widgets · {moduleLabels[t.module]}
+                <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
+                  <span>{t.widgetIds.length} widgets · {moduleLabels[t.module]}</span>
+                  <span className="rounded-full border px-1.5 font-mono text-[10px]">
+                    {templateVersions[t.id]?.find((v) => v.current)?.version ?? "v1"}
+                  </span>
                 </div>
               </button>
             )
           })}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <h3 className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+            Version history · Executive Incident Summary
+          </h3>
+          <Annotate id="sp-versions" />
+        </div>
+        <div className="overflow-hidden rounded-xl border bg-card">
+          <ul className="divide-y">
+            {(templateVersions["t-1"] ?? []).map((version) => (
+              <li key={version.version} className="flex flex-wrap items-center gap-3 px-5 py-2.5">
+                <span
+                  className={cn(
+                    "shrink-0 rounded-full border px-2 py-0.5 font-mono text-[10px]",
+                    version.current ? "border-primary/30 bg-primary/10 text-primary" : "text-muted-foreground"
+                  )}
+                >
+                  {version.version}
+                </span>
+                <span className="min-w-0 flex-1 text-xs">{version.note}</span>
+                <span className="shrink-0 text-[11px] text-muted-foreground">
+                  {version.author} · {version.publishedOn}
+                </span>
+                {!version.current && (
+                  <button type="button" className="shrink-0 text-[11px] font-medium text-primary hover:underline">
+                    Restore
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+          <p className="border-t px-5 py-2 text-[11px] text-muted-foreground">
+            Publishing a template creates a version. Reports already built from an earlier version keep it until they
+            are re-generated.
+          </p>
         </div>
       </div>
 

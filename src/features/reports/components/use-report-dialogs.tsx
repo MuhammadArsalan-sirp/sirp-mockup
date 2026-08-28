@@ -1,9 +1,12 @@
 import { useState } from "react"
+import { useNavigate } from "react-router"
 import type { Report } from "@/data/reports"
+import { useReportsStore } from "@/stores/reports-store"
 import type { ReportRowHandlers } from "./report-columns"
 import { ReportPreviewSheet } from "./report-preview-sheet"
 import { CreateReportWizard } from "./create-report-wizard"
 import { ScheduleDialog } from "./schedule-dialog"
+import { SendReportDialog } from "./send-report-dialog"
 
 /**
  * Centralizes the preview/create-edit/schedule dialog state shared by every
@@ -11,6 +14,7 @@ import { ScheduleDialog } from "./schedule-dialog"
  * rendered once, and `openCreate()` for its own "New report" button.
  */
 export function useReportDialogs() {
+  const navigate = useNavigate()
   const [previewReport, setPreviewReport] = useState<Report | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
 
@@ -20,6 +24,9 @@ export function useReportDialogs() {
 
   const [scheduleReport, setScheduleReport] = useState<Report | null>(null)
   const [scheduleOpen, setScheduleOpen] = useState(false)
+
+  const [sendReport, setSendReport] = useState<Report | null>(null)
+  const [sendOpen, setSendOpen] = useState(false)
 
   const handlers: ReportRowHandlers = {
     onPreview: (r) => {
@@ -31,9 +38,20 @@ export function useReportDialogs() {
       setWizardTemplateId(undefined)
       setWizardOpen(true)
     },
+    onOpenStudio: (r) => {
+      // A saved definition opens by id; a fixture row seeds a fresh document
+      // from its sections so every row in the list leads somewhere.
+      const saved = useReportsStore.getState().get(r.id)
+      if (saved) navigate(`/reports/studio?id=${saved.id}`)
+      else navigate("/reports/studio", { state: { report: r } })
+    },
     onSchedule: (r) => {
       setScheduleReport(r)
       setScheduleOpen(true)
+    },
+    onSendNow: (r) => {
+      setSendReport(r)
+      setSendOpen(true)
     },
   }
 
@@ -58,6 +76,7 @@ export function useReportDialogs() {
         initialTemplateId={wizardTemplateId}
       />
       <ScheduleDialog report={scheduleReport} open={scheduleOpen} onOpenChange={setScheduleOpen} />
+      <SendReportDialog report={sendReport} open={sendOpen} onOpenChange={setSendOpen} />
     </>
   )
 

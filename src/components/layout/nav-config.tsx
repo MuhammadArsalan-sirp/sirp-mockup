@@ -66,6 +66,7 @@ export const navSections: NavSection[] = [
           { title: "Saved Exports", url: "/reports/saved-exports" },
           { title: "Scheduled", url: "/reports/scheduled" },
           { title: "History", url: "/reports/history" },
+          { title: "Spec", url: "/reports/spec" },
         ],
       },
     ],
