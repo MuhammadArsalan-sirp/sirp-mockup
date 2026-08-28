@@ -1,7 +1,7 @@
 import { createRoot } from "react-dom/client"
 import type { Report } from "@/data/reports"
 import { ReportPrintableSummary } from "../components/report-printable-summary"
-import { exportNodeToPdf } from "./report-export"
+import { exportPagesToPdf } from "./report-export"
 
 /**
  * Row-menu "Generate PDF" and history downloads don't have a live rendered
@@ -24,7 +24,7 @@ export async function exportReportToPdf(report: Report, filename: string) {
 
   try {
     const node = container.firstElementChild as HTMLElement | null
-    if (node) await exportNodeToPdf(node, filename)
+    if (node) await exportPagesToPdf([node], filename, { pageSize: "A4", orientation: "portrait" })
   } finally {
     root.unmount()
     container.remove()

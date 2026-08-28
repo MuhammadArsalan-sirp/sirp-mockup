@@ -85,50 +85,80 @@ export function downloadBlob(blob: Blob, filename: string) {
 
 const A4_WIDTH_PT = 595.28
 const A4_HEIGHT_PT = 841.89
+const LETTER_WIDTH_PT = 612
+const LETTER_HEIGHT_PT = 792
 
-export async function exportNodeToPdf(node: HTMLElement, filename: string) {
-  const canvas = await withInlinedThemeVars(node, () =>
-    toCanvas(node, {
-      backgroundColor: themeBackgroundColor(),
-      pixelRatio: 2,
-      cacheBust: true,
-    })
-  )
+export type PaperSpec = { pageSize: "A4" | "Letter"; orientation: "portrait" | "landscape" }
 
-  const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" })
-  const pageWidth = A4_WIDTH_PT
-  const pageHeight = A4_HEIGHT_PT
-  const scaledWidth = pageWidth
-  const pageHeightInCanvasPx = (pageHeight * canvas.width) / pageWidth
+function paperSize({ pageSize, orientation }: PaperSpec): [number, number] {
+  const [w, h] = pageSize === "Letter" ? [LETTER_WIDTH_PT, LETTER_HEIGHT_PT] : [A4_WIDTH_PT, A4_HEIGHT_PT]
+  return orientation === "landscape" ? [h, w] : [w, h]
+}
+
+/**
+ * Exports one PDF page per rendered page element.
+ *
+ * The earlier version captured the whole document as a single tall image and
+ * sliced it every A4-height of pixels, which ignores where the pages actually
+ * break — a section could be cut in half and a page break could land mid-page.
+ * Capturing each page element separately means the PDF breaks exactly where
+ * the canvas says it does.
+ *
+ * Each capture is fitted to the sheet rather than stretched, so a cover that
+ * is exactly page-shaped fills the page and a short page sits at the top
+ * against the correct ground colour.
+ */
+export async function exportPagesToPdf(pages: HTMLElement[], filename: string, spec: PaperSpec) {
+  if (!pages.length) throw new Error("nothing to export")
+
+  const [pageWidth, pageHeight] = paperSize(spec)
+  const pdf = new jsPDF({
+    orientation: spec.orientation,
+    unit: "pt",
+    format: spec.pageSize.toLowerCase() as "a4" | "letter",
+  })
   const fillColor = parseRgbColor(themeBackgroundColor())
+  let sheet = 0
 
-  let renderedHeightPx = 0
-  let pageIndex = 0
-
-  while (renderedHeightPx < canvas.height) {
-    const sliceHeightPx = Math.min(pageHeightInCanvasPx, canvas.height - renderedHeightPx)
-
-    const sliceCanvas = document.createElement("canvas")
-    sliceCanvas.width = canvas.width
-    sliceCanvas.height = sliceHeightPx
-    const ctx = sliceCanvas.getContext("2d")
-    if (!ctx) break
-    ctx.fillStyle = themeBackgroundColor()
-    ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height)
-    ctx.drawImage(canvas, 0, renderedHeightPx, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx)
-
-    const sliceDataUrl = sliceCanvas.toDataURL("image/png", 1)
-    const sliceHeightPt = (sliceHeightPx * scaledWidth) / canvas.width
-
-    if (pageIndex > 0) pdf.addPage()
-    // Fill the full page first — a short last slice otherwise leaves jsPDF's
-    // default white background showing below the image on dark themes.
+  function newSheet() {
+    if (sheet > 0) pdf.addPage()
     pdf.setFillColor(fillColor[0], fillColor[1], fillColor[2])
     pdf.rect(0, 0, pageWidth, pageHeight, "F")
-    pdf.addImage(sliceDataUrl, "PNG", 0, 0, scaledWidth, sliceHeightPt)
+    sheet += 1
+  }
 
-    renderedHeightPx += sliceHeightPx
-    pageIndex += 1
+  for (const page of pages) {
+    const canvas = await withInlinedThemeVars(page, () =>
+      toCanvas(page, { backgroundColor: themeBackgroundColor(), pixelRatio: 2, cacheBust: true })
+    )
+
+    // Fit to width, never shrink to fit height: a page taller than the sheet
+    // continues onto the next one at full size, rather than being scaled down
+    // until the type is unreadable. A page-shaped page (the cover) lands on
+    // exactly one sheet.
+    const scale = pageWidth / canvas.width
+    const sheetHeightInCanvasPx = pageHeight / scale
+    let consumed = 0
+
+    do {
+      const sliceHeight = Math.min(sheetHeightInCanvasPx, canvas.height - consumed)
+      const slice = document.createElement("canvas")
+      slice.width = canvas.width
+      slice.height = Math.max(1, Math.round(sliceHeight))
+      const ctx = slice.getContext("2d")
+      if (!ctx) break
+      ctx.fillStyle = themeBackgroundColor()
+      ctx.fillRect(0, 0, slice.width, slice.height)
+      ctx.drawImage(canvas, 0, consumed, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight)
+
+      newSheet()
+      // JPEG rather than PNG: these are page-sized photographs of a rendered
+      // document, and PNG was producing eight-figure byte counts no mail
+      // server would accept.
+      pdf.addImage(slice.toDataURL("image/jpeg", 0.94), "JPEG", 0, 0, pageWidth, sliceHeight * scale)
+
+      consumed += sliceHeight
+    } while (consumed < canvas.height - 1)
   }
 
   pdf.save(filename)

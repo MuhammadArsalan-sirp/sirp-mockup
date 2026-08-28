@@ -253,7 +253,7 @@ export function CreateReportWizard({
                   <div className="rounded-lg border bg-primary/5 p-3">
                     <Label className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                       <Sparkles className="size-3.5 text-primary" />
-                      Draft with SARA
+                      Draft with the Co-Analyst
                     </Label>
                     <div className="mt-2 flex gap-2">
                       <Input

@@ -44,7 +44,7 @@ import { ScheduleDialog } from "../components/schedule-dialog"
 import { CoAnalystDock } from "../ai/co-analyst-dock"
 import { explainChart, rewrite } from "../ai/ai-engine"
 import type { BlockChange, ComposePlan } from "../ai/ai-types"
-import { exportNodeToHtmlSnapshot, exportNodeToPdf } from "../lib/report-export"
+import { exportNodeToHtmlSnapshot, exportPagesToPdf, type PaperSpec } from "../lib/report-export"
 import { reportsBackend } from "../lib/reports-backend"
 import { BLOCK_ICON, ReportStudioPalette } from "./report-studio-palette"
 import { ReportStudioProperties } from "./report-studio-properties"
@@ -73,7 +73,11 @@ type StudioLocationState = { templateId?: string; plan?: ComposePlan; report?: R
 /** Page width in px at 96dpi, so the canvas is the shape of the paper it prints on. */
 const PAGE_WIDTH: Record<string, number> = { "A4-portrait": 794, "A4-landscape": 1123, "Letter-portrait": 816, "Letter-landscape": 1056 }
 
-/** Splits the document on page-break blocks — the same boundaries export uses. */
+/**
+ * Splits the document into pages — the same boundaries export uses.
+ * A cover always owns its page: it's a full-bleed artwork, and nothing should
+ * share a sheet with it.
+ */
 function splitPages(blocks: StudioBlock[]): StudioBlock[][] {
   const pages: StudioBlock[][] = [[]]
   for (const block of blocks) {
@@ -81,9 +85,22 @@ function splitPages(blocks: StudioBlock[]): StudioBlock[][] {
       pages.push([])
       continue
     }
+    if (block.type === "cover") {
+      if (pages[pages.length - 1].length > 0) pages.push([])
+      pages[pages.length - 1].push(block)
+      pages.push([])
+      continue
+    }
     pages[pages.length - 1].push(block)
   }
   return pages.filter((p, i) => p.length > 0 || i === 0)
+}
+
+const PAPER_ASPECT: Record<string, string> = {
+  "A4-portrait": "210 / 297",
+  "A4-landscape": "297 / 210",
+  "Letter-portrait": "216 / 279",
+  "Letter-landscape": "279 / 216",
 }
 
 /** Groups consecutive half-width blocks into rows so they render side by side. */
@@ -191,6 +208,20 @@ export function ReportStudioPage() {
   const disabledTypes: StudioBlockType[] = hasCover ? ["cover"] : []
   const pages = useMemo(() => splitPages(blocks), [blocks])
   const pageWidth = PAGE_WIDTH[`${doc.pageSize}-${doc.orientation}`] ?? 794
+  const pageAspect = PAPER_ASPECT[`${doc.pageSize}-${doc.orientation}`] ?? "210 / 297"
+
+  // What the cover lists as its contents: the document's own section titles.
+  const coverContents = useMemo(
+    () =>
+      blocks
+        .filter((b) => !["cover", "divider", "spacer", "pageBreak", "kpi"].includes(b.type))
+        .map((b) => {
+          const p = b.props as Record<string, unknown>
+          return typeof p.title === "string" ? p.title : typeof p.text === "string" ? p.text : BLOCK_LABELS[b.type]
+        })
+        .filter((t) => t.length < 60),
+    [blocks]
+  )
   const unreviewed = blocks.filter((b) => b.ai?.generated && (b.ai.review ?? "unreviewed") === "unreviewed").length
 
   function snapshot() {
@@ -497,11 +528,18 @@ export function ReportStudioPage() {
             </div>
 
             <div ref={canvasRef} className="space-y-5">
-              {pages.map((pageBlocks, pageIndex) => (
-                <section key={pageIndex} className="overflow-hidden rounded-xl border bg-card shadow-sm">
-                  <PageChrome doc={doc} pageIndex={pageIndex} pageCount={pages.length} position="header" />
+              {pages.map((pageBlocks, pageIndex) => {
+                // A cover fills its sheet edge to edge — no margins, and no
+                // running header or page number over the artwork.
+                const isCoverPage = pageBlocks.length === 1 && pageBlocks[0].type === "cover"
+                return (
+                <section key={pageIndex} data-report-page className="overflow-hidden rounded-xl border bg-card shadow-sm">
+                  {!isCoverPage && <PageChrome doc={doc} pageIndex={pageIndex} pageCount={pages.length} position="header" />}
 
-                  <div style={{ paddingLeft: MARGIN_PX[doc.margin], paddingRight: MARGIN_PX[doc.margin] }} className="py-2">
+                  <div
+                    style={isCoverPage ? undefined : { paddingLeft: MARGIN_PX[doc.margin], paddingRight: MARGIN_PX[doc.margin] }}
+                    className={isCoverPage ? undefined : "py-2"}
+                  >
                     {toRows(pageBlocks).map((row, rowIndex) => (
                       <div key={rowIndex} className={cn(row.length > 1 && "grid grid-cols-2 gap-3")}>
                         {row.map((block) => (
@@ -509,6 +547,8 @@ export function ReportStudioPage() {
                             key={block.id}
                             block={block}
                             vars={doc.variables}
+                            pageAspect={pageAspect}
+                            coverContents={coverContents}
                             selected={block.id === selectedId}
                             preview={preview}
                             reviewMode={reviewMode}
@@ -530,7 +570,7 @@ export function ReportStudioPage() {
                     )}
                   </div>
 
-                  <PageChrome doc={doc} pageIndex={pageIndex} pageCount={pages.length} position="footer" />
+                  {!isCoverPage && <PageChrome doc={doc} pageIndex={pageIndex} pageCount={pages.length} position="footer" />}
 
                   {!preview && pageIndex === pages.length - 1 && (
                     <div className="border-t px-10 py-3">
@@ -565,7 +605,8 @@ export function ReportStudioPage() {
                     </div>
                   )}
                 </section>
-              ))}
+                )
+              })}
             </div>
           </div>
         </main>
@@ -606,6 +647,7 @@ export function ReportStudioPage() {
         setSelectedId={setSelectedId}
         pageCount={pages.length}
         unreviewed={unreviewed}
+        paper={{ pageSize: doc.pageSize, orientation: doc.orientation }}
         onExported={(format) => {
           const id = persist(savedId)
           addEdition(id, { trigger: "manual", format, blockCount: blocks.length })
@@ -664,6 +706,8 @@ function PageChrome({
 function StudioBlockRow({
   block,
   vars,
+  pageAspect,
+  coverContents,
   selected,
   preview,
   reviewMode,
@@ -676,6 +720,8 @@ function StudioBlockRow({
 }: {
   block: StudioBlock
   vars: Record<string, string>
+  pageAspect: string
+  coverContents: string[]
   selected: boolean
   preview: boolean
   reviewMode: boolean
@@ -694,7 +740,7 @@ function StudioBlockRow({
     if (rejected) return null
     return (
       <div className={cn(block.style?.emphasis && "-mx-3 rounded-lg border-l-2 border-primary bg-muted/40 px-3 py-1")}>
-        <StudioBlockContent block={block} vars={vars} />
+        <StudioBlockContent block={block} vars={vars} pageAspect={pageAspect} coverContents={coverContents} />
       </div>
     )
   }
@@ -703,7 +749,8 @@ function StudioBlockRow({
     <div
       onClick={onSelect}
       className={cn(
-        "group relative my-0.5 -mx-2 rounded-lg border border-transparent px-2 transition-colors hover:border-border",
+        "group relative my-0.5 rounded-lg border border-transparent transition-colors hover:border-border",
+        block.type === "cover" ? "overflow-hidden" : "-mx-2 px-2",
         selected && "border-primary/40 bg-primary/5",
         reviewMode && needsReview && "border-amber-500/50 bg-amber-500/5",
         rejected && "opacity-45",
@@ -758,7 +805,7 @@ function StudioBlockRow({
         </div>
       )}
 
-      <StudioBlockContent block={block} vars={vars} />
+      <StudioBlockContent block={block} vars={vars} pageAspect={pageAspect} coverContents={coverContents} />
     </div>
   )
 }
@@ -773,6 +820,7 @@ function ExportDialog({
   setSelectedId,
   pageCount,
   unreviewed,
+  paper,
   onExported,
 }: {
   open: boolean
@@ -784,6 +832,7 @@ function ExportDialog({
   setSelectedId: (next: string | null) => void
   pageCount: number
   unreviewed: number
+  paper: PaperSpec
   onExported: (format: "PDF" | "HTML") => void
 }) {
   const [format, setFormat] = useState<"pdf" | "html">("pdf")
@@ -816,7 +865,8 @@ function ExportDialog({
 
       const filenameBase = reportName.replace(/[^a-z0-9]+/gi, "-") || "report"
       if (format === "pdf") {
-        await exportNodeToPdf(node, `${filenameBase}.pdf`)
+        const pageEls = [...node.querySelectorAll<HTMLElement>("[data-report-page]")]
+        await exportPagesToPdf(pageEls.length ? pageEls : [node], `${filenameBase}.pdf`, paper)
         void reportsBackend.logExport({ reportId, reportName, format: "PDF", triggeredBy: "manual" })
       } else {
         await exportNodeToHtmlSnapshot(node, `${filenameBase}.html`, reportName)
