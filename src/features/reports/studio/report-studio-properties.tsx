@@ -587,7 +587,7 @@ function ReviewControls({ block, onChangeBase }: { block: StudioBlock; onChangeB
           ? "Accepted — this section is cleared for delivery."
           : review === "rejected"
             ? "Rejected — it stays out of the generated document."
-            : "Generated content is held until a human accepts it."}
+            : "Generated content is flagged until the author accepts it."}
       </p>
       <div className="mt-2 flex gap-1.5">
         <Button

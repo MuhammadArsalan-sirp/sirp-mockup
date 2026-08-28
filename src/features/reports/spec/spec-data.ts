@@ -140,21 +140,14 @@ export const specEntries: SpecEntry[] = [
     screen: "Studio · Review",
     surface: "Accept / reject generated sections",
     backing: "none",
-    note: "Review state stores per block. Delivery reads it — unreviewed generated content holds the send.",
-  },
-  {
-    id: "sp-approvals",
-    screen: "Approvals",
-    surface: "Delivery queue, diffs, risk tiers, policy",
-    backing: "none",
-    note: "New, and the piece that makes autonomous reporting safe. Needs editions persisted before delivery plus a policy evaluator server-side.",
+    note: "Review state stores per block. Rejected sections are omitted from the render; the author clears their own document before it ships.",
   },
   {
     id: "sp-send",
     screen: "Send",
     surface: "One-off send",
     backing: "none",
-    note: "No endpoint. Zainab's Supabase + Resend path is a demo prop and cannot port — KSA residency and tenant isolation both rule it out.",
+    note: "No endpoint. The Supabase + Resend path is a demo prop and cannot port — KSA residency and tenant isolation both rule it out. Report access is governed by role, not by a delivery gate.",
   },
 ]
 

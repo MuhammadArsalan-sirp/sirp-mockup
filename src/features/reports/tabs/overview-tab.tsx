@@ -1,13 +1,12 @@
 import { useState } from "react"
-import { Link, useNavigate, useSearchParams } from "react-router"
-import { CalendarClock, FileStack, Lock, PenLine, Plus, RefreshCw, Search, ShieldAlert, Sparkles, TriangleAlert } from "lucide-react"
+import { useNavigate, useSearchParams } from "react-router"
+import { CalendarClock, FileStack, Lock, PenLine, Plus, RefreshCw, Search, Sparkles, TriangleAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { PageHeader } from "@/components/shared/page-header"
 import { KpiCard } from "@/components/shared/kpi-card"
 import { reportHistory, reports } from "@/data/reports"
-import { pendingEditions } from "@/data/reports-ai"
 import { ReportsTable } from "../components/reports-table"
 import { useReportDialogs } from "../components/use-report-dialogs"
 import { Annotate } from "../spec/annotations"
@@ -31,7 +30,6 @@ export function OverviewTab() {
   const scheduledCount = reports.filter((r) => r.isScheduled).length
   const draftCount = reports.filter((r) => r.status === "draft").length
   const generatedThisMonth = reportHistory.filter((h) => h.generatedAt.startsWith("Jul")).length
-  const awaitingApproval = pendingEditions.filter((e) => e.status === "pending").length
 
   if (demoState === "denied") return <DeniedState />
   if (demoState === "error") return <ErrorState />
@@ -54,26 +52,6 @@ export function OverviewTab() {
           </div>
         }
       />
-
-      {awaitingApproval > 0 && demoState !== "empty" && (
-        <Link
-          to="/reports/approvals"
-          className="flex flex-wrap items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 transition-colors hover:bg-amber-500/10"
-        >
-          <span className="grid size-8 shrink-0 place-items-center rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400">
-            <ShieldAlert className="size-4" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-sm font-medium">
-              {awaitingApproval} report{awaitingApproval === 1 ? "" : "s"} generated overnight and need your approval
-            </span>
-            <span className="block text-xs text-muted-foreground">
-              Each carries generated narrative or goes outside the tenant, so nothing sent automatically.
-            </span>
-          </span>
-          <span className="shrink-0 text-xs font-medium text-primary">Review queue →</span>
-        </Link>
-      )}
 
       {demoState === "loading" ? (
         <LoadingState />

@@ -88,7 +88,7 @@ export function EvidencePopover({ evidenceId, children }: { evidenceId: string; 
         {low && (
           <div className="flex items-start gap-2 border-t bg-amber-500/10 px-3.5 py-2 text-[11px] text-amber-700 dark:text-amber-400">
             <AlertTriangle className="mt-px size-3.5 shrink-0" />
-            <span>Below the {Math.round(LOW_CONFIDENCE * 100)}% confidence floor. Scheduled delivery holds for review.</span>
+            <span>Below the {Math.round(LOW_CONFIDENCE * 100)}% confidence floor — worth a read before this ships.</span>
           </div>
         )}
 

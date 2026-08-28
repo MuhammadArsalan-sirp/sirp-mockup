@@ -23,7 +23,6 @@ const SCREENS = [
   { path: "/reports/templates", label: "Templates", note: "Gallery, versions" },
   { path: "/reports/saved-exports", label: "Saved Exports", note: "Excel snapshots, gated actions" },
   { path: "/reports/scheduled", label: "Scheduled", note: "Recurrences, audience variants" },
-  { path: "/reports/approvals", label: "Approvals", note: "Delivery queue, policy, diffs" },
   { path: "/reports/history", label: "History", note: "Generation log" },
   { path: "/reports/studio", label: "Studio", note: "Document, Co-Analyst dock, review mode" },
 ]

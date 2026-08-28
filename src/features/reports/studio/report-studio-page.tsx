@@ -375,8 +375,8 @@ export function ReportStudioPage() {
         <div className="flex shrink-0 items-center gap-3 border-b bg-amber-500/10 px-4 py-2 text-xs text-amber-700 dark:text-amber-300">
           <ShieldCheck className="size-3.5 shrink-0" />
           <span className="min-w-0 flex-1">
-            Review mode — {unreviewed} generated section{unreviewed === 1 ? "" : "s"} still unaccepted. Scheduled delivery
-            holds until every one is cleared.
+            Review mode — {unreviewed} generated section{unreviewed === 1 ? "" : "s"} still unaccepted. Rejected
+            sections are dropped from the export.
           </span>
           <Button size="sm" variant="outline" className="h-7 border-amber-500/40 text-[11px]" onClick={acceptAllGenerated}>
             <CheckCheck className="size-3" />
@@ -774,8 +774,8 @@ function ExportDialog({
           <>
             {unreviewed > 0 && (
               <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[11px] leading-relaxed text-amber-700 dark:text-amber-300">
-                {unreviewed} generated section{unreviewed === 1 ? "" : "s"} unreviewed. A manual export carries them
-                anyway — scheduled delivery would hold instead.
+                {unreviewed} generated section{unreviewed === 1 ? "" : "s"} still unreviewed — they will be included
+                as written. Rejected sections are left out.
               </div>
             )}
             <div className="grid grid-cols-2 gap-2">

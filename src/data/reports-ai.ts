@@ -1,19 +1,11 @@
 /**
  * Fixtures for the Co-Analyst layer of Reports — evidence records, insights,
- * the delivery approval queue, autonomy policy, saved searches and the block
- * library.
+ * narrative claims, saved searches, audience variants and the block library.
  *
  * Fixture data only. Never paste real tenant data, IOCs or credentials here.
  */
 
-import type {
-  AutonomyPolicy,
-  Claim,
-  ComposeAudience,
-  Evidence,
-  Insight,
-  PendingEdition,
-} from "@/features/reports/ai/ai-types"
+import type { Claim, ComposeAudience, Evidence, Insight } from "@/features/reports/ai/ai-types"
 import type { ReportModule } from "./reports"
 
 /* ------------------------------------------------------------------ */
@@ -270,137 +262,6 @@ export const savedSearches: SavedSearch[] = [
   { id: "ss-4", name: "High-confidence intel", module: "threatIntel", summary: "confidence ≥ 90 · disposition: true-positive" },
   { id: "ss-5", name: "Phishing backlog", module: "cases", summary: "category: phishing · state: not closed" },
   { id: "ss-6", name: "Automation-contained", module: "incident", summary: "closed_by: playbook · outcome: contained" },
-]
-
-/* ------------------------------------------------------------------ */
-/* Delivery approval queue                                             */
-/* ------------------------------------------------------------------ */
-
-export const pendingEditions: PendingEdition[] = [
-  {
-    id: "ed-1",
-    reportId: "r-1",
-    reportName: "Weekly Executive Incident Summary",
-    generatedAt: "Today, 06:00",
-    scheduledFor: "Today, 08:00",
-    recipientSummary: "Board distribution · 6 recipients",
-    recipientCount: 6,
-    channel: "email",
-    riskTier: "review",
-    reviewReasons: [
-      "Goes to an external distribution list",
-      "Narrative was generated, not written",
-      "One figure sits below the confidence floor",
-    ],
-    changesSinceLast: [
-      { label: "Incident volume", detail: "124 → 139 (+12%)", adverse: true },
-      { label: "MTTR", detail: "51m → 42m (−18%)", adverse: false },
-      { label: "New section", detail: "Anomaly callout: VPN brute-force campaign", adverse: true },
-      { label: "Aging criticals", detail: "1 → 3", adverse: true },
-    ],
-    narrativeClaims: execSummaryClaims,
-    status: "pending",
-    audience: "executive",
-  },
-  {
-    id: "ed-2",
-    reportId: "r-3",
-    reportName: "SLA Compliance Report",
-    generatedAt: "Today, 05:30",
-    scheduledFor: "Today, 09:00",
-    recipientSummary: "SOC leadership · 4 recipients",
-    recipientCount: 4,
-    channel: "slack",
-    riskTier: "review",
-    reviewReasons: ["Attainment dropped more than 3 points week over week"],
-    changesSinceLast: [
-      { label: "Overall attainment", detail: "93.1% → 94.0%", adverse: false },
-      { label: "IR team", detail: "93.1% → 88.7% (−4.4pp)", adverse: true },
-    ],
-    narrativeClaims: [
-      {
-        id: "cl-sla-1",
-        text: "Overall SLA attainment held at 94%, but the incident-response team fell to 88.7% on aging critical cases.",
-        evidenceId: "ev-sla",
-      },
-    ],
-    status: "pending",
-    audience: "analyst",
-  },
-  {
-    id: "ed-3",
-    reportId: "r-8",
-    reportName: "Analyst Workload Overview",
-    generatedAt: "Today, 05:15",
-    scheduledFor: "Today, 07:00",
-    recipientSummary: "Shift leads · 3 recipients",
-    recipientCount: 3,
-    channel: "teams",
-    riskTier: "auto",
-    reviewReasons: [],
-    changesSinceLast: [{ label: "Queue depth", detail: "41 → 38", adverse: false }],
-    narrativeClaims: [],
-    status: "sent",
-    audience: "analyst",
-  },
-  {
-    id: "ed-4",
-    reportId: "r-4",
-    reportName: "MITRE ATT&CK Coverage Report",
-    generatedAt: "Yesterday, 06:00",
-    scheduledFor: "Yesterday, 08:00",
-    recipientSummary: "Detection engineering · 5 recipients",
-    recipientCount: 5,
-    channel: "email",
-    riskTier: "review",
-    reviewReasons: ["Coverage figure moved more than 5 points"],
-    changesSinceLast: [
-      { label: "Technique coverage", detail: "71% → 78%", adverse: false },
-      { label: "Uncovered techniques", detail: "24 → 19", adverse: false },
-    ],
-    narrativeClaims: [
-      {
-        id: "cl-attck-1",
-        text: "Technique coverage reached 78% after five new detections shipped for credential access.",
-        evidenceId: "ev-attck",
-      },
-    ],
-    status: "approved",
-    audience: "analyst",
-  },
-]
-
-/* ------------------------------------------------------------------ */
-/* Autonomy policy — what may send itself                              */
-/* ------------------------------------------------------------------ */
-
-export const autonomyPolicies: AutonomyPolicy[] = [
-  {
-    id: "ap-1",
-    label: "Internal operational reports",
-    description: "Shift handovers, queue depth, analyst workload. Recipients are inside the SOC.",
-    tier: "auto",
-  },
-  {
-    id: "ap-2",
-    label: "Reports containing generated narrative",
-    description: "Anything where the Co-Analyst wrote prose rather than rendering figures.",
-    tier: "review",
-  },
-  {
-    id: "ap-3",
-    label: "External distribution lists",
-    description: "Board, customer or regulator recipients — anyone outside the tenant.",
-    tier: "review",
-    locked: true,
-  },
-  {
-    id: "ap-4",
-    label: "Reports scoped across tenants",
-    description: "Cross-tenant aggregation never leaves the platform on a schedule.",
-    tier: "blocked",
-    locked: true,
-  },
 ]
 
 /* ------------------------------------------------------------------ */
