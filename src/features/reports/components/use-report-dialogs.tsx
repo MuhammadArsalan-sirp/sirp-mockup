@@ -5,6 +5,7 @@ import { useReportsStore } from "@/stores/reports-store"
 import type { ReportRowHandlers } from "./report-columns"
 import { ReportPreviewSheet } from "./report-preview-sheet"
 import { CreateReportWizard } from "./create-report-wizard"
+import { CreateReportDialog } from "./create-report-dialog"
 import { ScheduleDialog } from "./schedule-dialog"
 import { SendReportDialog } from "./send-report-dialog"
 
@@ -18,6 +19,7 @@ export function useReportDialogs() {
   const [previewReport, setPreviewReport] = useState<Report | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
 
+  const [chooserOpen, setChooserOpen] = useState(false)
   const [wizardOpen, setWizardOpen] = useState(false)
   const [editingReport, setEditingReport] = useState<Report | undefined>(undefined)
   const [wizardTemplateId, setWizardTemplateId] = useState<string | undefined>(undefined)
@@ -55,7 +57,13 @@ export function useReportDialogs() {
     },
   }
 
-  function openCreate(templateId?: string) {
+  /** The one entry point: pick how to start, then go. */
+  function openCreate() {
+    setChooserOpen(true)
+  }
+
+  /** Straight to the older step-by-step wizard — used for saved exports. */
+  function openSavedExport(templateId?: string) {
     setEditingReport(undefined)
     setWizardTemplateId(templateId)
     setWizardOpen(true)
@@ -63,6 +71,7 @@ export function useReportDialogs() {
 
   const dialogs = (
     <>
+      <CreateReportDialog open={chooserOpen} onOpenChange={setChooserOpen} onSavedExport={() => openSavedExport()} />
       <ReportPreviewSheet report={previewReport} open={previewOpen} onOpenChange={setPreviewOpen} />
       <CreateReportWizard
         // Remount per distinct target — the wizard's fields seed from
@@ -80,5 +89,5 @@ export function useReportDialogs() {
     </>
   )
 
-  return { handlers, openCreate, dialogs }
+  return { handlers, openCreate, openSavedExport, dialogs }
 }
