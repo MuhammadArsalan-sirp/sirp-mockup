@@ -15,7 +15,7 @@ import { useReportDialogs } from "../components/use-report-dialogs"
  */
 export function SavedExportsTab() {
   const [query, setQuery] = useState("")
-  const { handlers, openCreate, dialogs } = useReportDialogs()
+  const { handlers, openSavedExport, dialogs } = useReportDialogs()
 
   const savedExports = reports.filter((r) => r.format === "EXCEL")
   const filtered = savedExports.filter((r) =>
@@ -28,7 +28,7 @@ export function SavedExportsTab() {
         title="Saved Exports"
         description="Snapshots of Incident, Threat Intel, and Case list filters, exported as Excel."
         actions={
-          <Button size="sm" className="h-8 text-sm" onClick={() => openCreate()}>
+          <Button size="sm" className="h-8 text-sm" onClick={() => openSavedExport()}>
             <Plus className="size-4" />
             Save new export
           </Button>

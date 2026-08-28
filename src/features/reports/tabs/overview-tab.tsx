@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { useNavigate, useSearchParams } from "react-router"
+import { useSearchParams } from "react-router"
 import { CalendarClock, FileStack, Lock, PenLine, Plus, RefreshCw, Search, Sparkles, TriangleAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -21,7 +21,6 @@ import { Annotate } from "../spec/annotations"
 export function OverviewTab() {
   const [query, setQuery] = useState("")
   const [params] = useSearchParams()
-  const navigate = useNavigate()
   const { handlers, openCreate, dialogs } = useReportDialogs()
 
   const demoState = params.get("state")
@@ -46,16 +45,10 @@ export function OverviewTab() {
         title="Reports"
         description="Templated reports, saved-search exports, and everything the platform writes on a schedule."
         actions={
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" className="h-8 text-sm" onClick={() => openCreate()}>
-              <Plus className="size-4" />
-              Blank report
-            </Button>
-            <Button size="sm" className="h-8 text-sm" onClick={() => navigate("/reports/new")}>
-              <Sparkles className="size-4" />
-              Describe a report
-            </Button>
-          </div>
+          <Button size="sm" className="h-8 text-sm" onClick={() => openCreate()}>
+            <Plus className="size-4" />
+            Create report
+          </Button>
         }
       />
 
@@ -84,7 +77,7 @@ export function OverviewTab() {
             <Annotate id="sp-list" />
           </div>
 
-          {demoState === "empty" ? <EmptyState onCompose={() => navigate("/reports/new")} /> : <ReportsTable data={filtered} handlers={handlers} />}
+          {demoState === "empty" ? <EmptyState onCompose={openCreate} /> : <ReportsTable data={filtered} handlers={handlers} />}
         </>
       )}
       {dialogs}
@@ -117,8 +110,8 @@ function EmptyState({ onCompose }: { onCompose: () => void }) {
         Describe what you need in plain language and the Co-Analyst proposes a structure — or start from a template.
       </p>
       <Button size="sm" className="mt-4" onClick={onCompose}>
-        <Sparkles className="size-3.5" />
-        Describe a report
+        <Plus className="size-3.5" />
+        Create report
       </Button>
     </div>
   )
