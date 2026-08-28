@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type RefObject } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useLocation, useNavigate, useSearchParams } from "react-router"
 import {
   ArrowDown,
@@ -44,7 +44,8 @@ import { ScheduleDialog } from "../components/schedule-dialog"
 import { CoAnalystDock } from "../ai/co-analyst-dock"
 import { explainChart, rewrite } from "../ai/ai-engine"
 import type { BlockChange, ComposePlan } from "../ai/ai-types"
-import { exportNodeToHtmlSnapshot, exportPagesToPdf, type PaperSpec } from "../lib/report-export"
+import { exportDocumentToHtml, exportDocumentToPdf } from "../lib/export-print-document"
+import { PAGE_WIDTH, PAPER_ASPECT, isCoverPage, paperKey, splitPages, toRows } from "./report-pagination"
 import { reportsBackend } from "../lib/reports-backend"
 import { BLOCK_ICON, ReportStudioPalette } from "./report-studio-palette"
 import { ReportStudioProperties } from "./report-studio-properties"
@@ -69,53 +70,6 @@ import {
 } from "./report-studio-types"
 
 type StudioLocationState = { templateId?: string; plan?: ComposePlan; report?: Report } | null
-
-/** Page width in px at 96dpi, so the canvas is the shape of the paper it prints on. */
-const PAGE_WIDTH: Record<string, number> = { "A4-portrait": 794, "A4-landscape": 1123, "Letter-portrait": 816, "Letter-landscape": 1056 }
-
-/**
- * Splits the document into pages — the same boundaries export uses.
- * A cover always owns its page: it's a full-bleed artwork, and nothing should
- * share a sheet with it.
- */
-function splitPages(blocks: StudioBlock[]): StudioBlock[][] {
-  const pages: StudioBlock[][] = [[]]
-  for (const block of blocks) {
-    if (block.type === "pageBreak") {
-      pages.push([])
-      continue
-    }
-    if (block.type === "cover") {
-      if (pages[pages.length - 1].length > 0) pages.push([])
-      pages[pages.length - 1].push(block)
-      pages.push([])
-      continue
-    }
-    pages[pages.length - 1].push(block)
-  }
-  return pages.filter((p, i) => p.length > 0 || i === 0)
-}
-
-const PAPER_ASPECT: Record<string, string> = {
-  "A4-portrait": "210 / 297",
-  "A4-landscape": "297 / 210",
-  "Letter-portrait": "216 / 279",
-  "Letter-landscape": "279 / 216",
-}
-
-/** Groups consecutive half-width blocks into rows so they render side by side. */
-function toRows(blocks: StudioBlock[]): StudioBlock[][] {
-  const rows: StudioBlock[][] = []
-  for (const block of blocks) {
-    const last = rows.at(-1)
-    if (block.width === "half" && last && last.length === 1 && last[0].width === "half") {
-      last.push(block)
-    } else {
-      rows.push([block])
-    }
-  }
-  return rows
-}
 
 export function ReportStudioPage() {
   const navigate = useNavigate()
@@ -207,8 +161,8 @@ export function ReportStudioPage() {
   const hasCover = blocks.some((b) => b.type === "cover")
   const disabledTypes: StudioBlockType[] = hasCover ? ["cover"] : []
   const pages = useMemo(() => splitPages(blocks), [blocks])
-  const pageWidth = PAGE_WIDTH[`${doc.pageSize}-${doc.orientation}`] ?? 794
-  const pageAspect = PAPER_ASPECT[`${doc.pageSize}-${doc.orientation}`] ?? "210 / 297"
+  const pageWidth = PAGE_WIDTH[paperKey(doc.pageSize, doc.orientation)] ?? 794
+  const pageAspect = PAPER_ASPECT[paperKey(doc.pageSize, doc.orientation)] ?? "210 / 297"
 
   // What the cover lists as its contents: the document's own section titles.
   const coverContents = useMemo(
@@ -531,14 +485,14 @@ export function ReportStudioPage() {
               {pages.map((pageBlocks, pageIndex) => {
                 // A cover fills its sheet edge to edge — no margins, and no
                 // running header or page number over the artwork.
-                const isCoverPage = pageBlocks.length === 1 && pageBlocks[0].type === "cover"
+                const cover = isCoverPage(pageBlocks)
                 return (
                 <section key={pageIndex} data-report-page className="overflow-hidden rounded-xl border bg-card shadow-sm">
-                  {!isCoverPage && <PageChrome doc={doc} pageIndex={pageIndex} pageCount={pages.length} position="header" />}
+                  {!cover && <PageChrome doc={doc} pageIndex={pageIndex} pageCount={pages.length} position="header" />}
 
                   <div
-                    style={isCoverPage ? undefined : { paddingLeft: MARGIN_PX[doc.margin], paddingRight: MARGIN_PX[doc.margin] }}
-                    className={isCoverPage ? undefined : "py-2"}
+                    style={cover ? undefined : { paddingLeft: MARGIN_PX[doc.margin], paddingRight: MARGIN_PX[doc.margin] }}
+                    className={cover ? undefined : "py-2"}
                   >
                     {toRows(pageBlocks).map((row, rowIndex) => (
                       <div key={rowIndex} className={cn(row.length > 1 && "grid grid-cols-2 gap-3")}>
@@ -570,7 +524,7 @@ export function ReportStudioPage() {
                     )}
                   </div>
 
-                  {!isCoverPage && <PageChrome doc={doc} pageIndex={pageIndex} pageCount={pages.length} position="footer" />}
+                  {!cover && <PageChrome doc={doc} pageIndex={pageIndex} pageCount={pages.length} position="footer" />}
 
                   {!preview && pageIndex === pages.length - 1 && (
                     <div className="border-t px-10 py-3">
@@ -640,14 +594,13 @@ export function ReportStudioPage() {
       <ExportDialog
         open={exportOpen}
         onOpenChange={setExportOpen}
-        canvasRef={canvasRef}
         reportId={scheduleReportStub.id}
         reportName={reportName}
-        selectedId={selectedId}
-        setSelectedId={setSelectedId}
+        blocks={blocks}
+        doc={doc}
+        coverContents={coverContents}
         pageCount={pages.length}
         unreviewed={unreviewed}
-        paper={{ pageSize: doc.pageSize, orientation: doc.orientation }}
         onExported={(format) => {
           const id = persist(savedId)
           addEdition(id, { trigger: "manual", format, blockCount: blocks.length })
@@ -813,26 +766,24 @@ function StudioBlockRow({
 function ExportDialog({
   open,
   onOpenChange,
-  canvasRef,
   reportId,
   reportName,
-  selectedId,
-  setSelectedId,
+  blocks,
+  doc,
+  coverContents,
   pageCount,
   unreviewed,
-  paper,
   onExported,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
-  canvasRef: RefObject<HTMLDivElement | null>
   reportId: string
   reportName: string
-  selectedId: string | null
-  setSelectedId: (next: string | null) => void
+  blocks: StudioBlock[]
+  doc: DocSettings
+  coverContents: string[]
   pageCount: number
   unreviewed: number
-  paper: PaperSpec
   onExported: (format: "PDF" | "HTML") => void
 }) {
   const [format, setFormat] = useState<"pdf" | "html">("pdf")
@@ -844,32 +795,15 @@ function ExportDialog({
   }
 
   async function handleExport() {
-    const node = canvasRef.current
-    if (!node) {
-      setState("error")
-      return
-    }
     setState("working")
-    // Deselecting (rather than toggling preview mode) only changes a
-    // className — unlike preview mode, it doesn't unmount/remount blocks, so
-    // recharts' ResponsiveContainer never loses its measured size right
-    // before capture.
-    const previousSelectedId = selectedId
-    setSelectedId(null)
-
     try {
-      // The deselected row's `transition-colors` border/background fade
-      // (Tailwind default ~150ms) needs to fully settle before capture, or
-      // a just-deselected block's highlight bleeds into the export.
-      await new Promise<void>((resolve) => setTimeout(resolve, 220))
-
       const filenameBase = reportName.replace(/[^a-z0-9]+/gi, "-") || "report"
+      const input = { blocks, doc, coverContents }
       if (format === "pdf") {
-        const pageEls = [...node.querySelectorAll<HTMLElement>("[data-report-page]")]
-        await exportPagesToPdf(pageEls.length ? pageEls : [node], `${filenameBase}.pdf`, paper)
+        await exportDocumentToPdf(input, `${filenameBase}.pdf`)
         void reportsBackend.logExport({ reportId, reportName, format: "PDF", triggeredBy: "manual" })
       } else {
-        await exportNodeToHtmlSnapshot(node, `${filenameBase}.html`, reportName)
+        await exportDocumentToHtml(input, `${filenameBase}.html`, reportName)
       }
       onExported(format === "pdf" ? "PDF" : "HTML")
       setState("done")
@@ -877,8 +811,6 @@ function ExportDialog({
     } catch (err) {
       console.error("[report-studio] export failed:", err)
       setState("error")
-    } finally {
-      setSelectedId(previousSelectedId)
     }
   }
 
